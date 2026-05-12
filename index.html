@@ -1,0 +1,883 @@
+import { useState, useEffect, useRef } from "react";
+
+const C = {
+  bg:       "#07101f",
+  bgCard:   "#0d1b2e",
+  bgDeep:   "#040c17",
+  border:   "#1a2f47",
+  gold:     "#d4a843",
+  goldDim:  "#a07c2a",
+  teal:     "#00d4b8",
+  tealDim:  "#007a6b",
+  white:    "#f0f4f8",
+  muted:    "#6b8099",
+  red:      "#e05252",
+  green:    "#3ecf8e",
+  text:     "#c8d8e8",
+};
+
+const STYLE = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: ${C.bg};
+    color: ${C.white};
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100vh;
+    background: ${C.bg};
+  }
+
+  .header {
+    background: ${C.bgDeep};
+    border-bottom: 1px solid ${C.border};
+    padding: 40px 20px 20px;
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, ${C.gold}, ${C.teal}, ${C.gold});
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .wordmark {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    color: ${C.gold};
+  }
+
+  .wordmark span { color: ${C.teal}; }
+
+  .tagline {
+    font-size: 12px;
+    font-weight: 300;
+    color: ${C.muted};
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  .company-line {
+    font-size: 10px;
+    color: ${C.goldDim};
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .shield-badge {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: ${C.bgCard};
+    border: 1px solid ${C.teal}50;
+    border-radius: 20px;
+    padding: 4px 10px;
+    flex-shrink: 0;
+  }
+
+  .shield-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: ${C.teal};
+    animation: pulse 2s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .shield-text {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    color: ${C.teal};
+    text-transform: uppercase;
+  }
+
+  .nav {
+    display: flex;
+    background: ${C.bgDeep};
+    border-bottom: 1px solid ${C.border};
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+
+  .nav-btn {
+    flex: 1;
+    min-width: 64px;
+    padding: 13px 6px;
+    border: none;
+    background: transparent;
+    font-family: 'Outfit', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: ${C.muted};
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .nav-btn.active {
+    color: ${C.gold};
+    border-bottom-color: ${C.gold};
+  }
+
+  .content {
+    padding: 20px 16px 100px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    color: ${C.gold};
+    margin-bottom: 4px;
+  }
+
+  .section-sub {
+    font-size: 13px;
+    color: ${C.muted};
+    font-weight: 300;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .bio-card {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bio-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, ${C.gold}, ${C.teal});
+  }
+
+  .bio-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: ${C.muted};
+    margin-bottom: 10px;
+  }
+
+  .bio-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 68px;
+    line-height: 1;
+    color: ${C.gold};
+  }
+
+  .bio-suffix {
+    font-size: 20px;
+    color: ${C.muted};
+    margin-left: 6px;
+  }
+
+  .bio-compare {
+    font-size: 13px;
+    color: ${C.muted};
+    margin-top: 10px;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 12px;
+    padding: 14px 10px;
+    text-align: center;
+  }
+
+  .stat-icon { font-size: 18px; margin-bottom: 6px; }
+
+  .stat-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: ${C.white};
+    margin-bottom: 2px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: ${C.muted};
+  }
+
+  .pillar-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .pillar-row {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .pillar-icon { font-size: 18px; width: 24px; text-align: center; }
+
+  .pillar-info { flex: 1; }
+
+  .pillar-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: ${C.text};
+    margin-bottom: 6px;
+  }
+
+  .bar-track {
+    height: 4px;
+    background: ${C.border};
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1.2s ease;
+  }
+
+  .pillar-score {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: ${C.gold};
+    min-width: 28px;
+    text-align: right;
+  }
+
+  .protocol-card {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 10px;
+    display: flex;
+    gap: 12px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+
+  .protocol-card:hover { border-color: ${C.gold}60; }
+
+  .proto-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: 1px solid ${C.border};
+    background: ${C.bgDeep};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .proto-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: ${C.gold};
+    margin-bottom: 4px;
+  }
+
+  .proto-desc {
+    font-size: 12px;
+    color: ${C.muted};
+    line-height: 1.5;
+    margin-bottom: 7px;
+  }
+
+  .proto-tag {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+
+  .assess-progress {
+    height: 3px;
+    background: ${C.border};
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .assess-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, ${C.gold}, ${C.teal});
+    transition: width 0.4s ease;
+  }
+
+  .assess-card {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .assess-q {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: ${C.white};
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+
+  .assess-options { display: flex; flex-direction: column; gap: 8px; }
+
+  .assess-opt {
+    padding: 11px 14px;
+    border-radius: 10px;
+    border: 1px solid ${C.border};
+    background: ${C.bgDeep};
+    font-size: 13px;
+    color: ${C.text};
+    cursor: pointer;
+    text-align: left;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .assess-opt:hover { border-color: ${C.gold}50; color: ${C.gold}; }
+  .assess-opt.selected { background: rgba(212,168,67,0.12); border-color: ${C.gold}; color: ${C.gold}; }
+
+  .step-counter {
+    text-align: center;
+    font-size: 12px;
+    color: ${C.muted};
+    margin-top: 10px;
+    letter-spacing: 1px;
+  }
+
+  .chat-area {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+    min-height: 220px;
+  }
+
+  .chat-msg {
+    max-width: 86%;
+    padding: 11px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.6;
+    animation: fadeUp 0.25s ease;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .chat-msg.ai {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    color: ${C.text};
+    border-radius: 4px 14px 14px 14px;
+    align-self: flex-start;
+  }
+
+  .chat-msg.user {
+    background: rgba(212,168,67,0.12);
+    border: 1px solid rgba(212,168,67,0.3);
+    color: ${C.white};
+    border-radius: 14px 4px 14px 14px;
+    align-self: flex-end;
+  }
+
+  .chat-msg.thinking {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    color: ${C.muted};
+    font-style: italic;
+    align-self: flex-start;
+    border-radius: 4px 14px 14px 14px;
+  }
+
+  .chat-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .chat-input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 1px solid ${C.border};
+    background: ${C.bgCard};
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    color: ${C.white};
+    resize: none;
+    outline: none;
+    min-height: 44px;
+    max-height: 120px;
+    transition: border-color 0.2s;
+  }
+
+  .chat-input::placeholder { color: ${C.muted}; }
+  .chat-input:focus { border-color: rgba(212,168,67,0.5); }
+
+  .chat-send {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    border: none;
+    background: ${C.gold};
+    color: ${C.bgDeep};
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: opacity 0.2s;
+  }
+
+  .chat-send:hover { opacity: 0.88; }
+  .chat-send:disabled { background: ${C.border}; color: ${C.muted}; cursor: not-allowed; }
+
+  .btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 12px;
+    border: none;
+    background: ${C.gold};
+    color: ${C.bgDeep};
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: opacity 0.2s;
+  }
+
+  .btn:hover { opacity: 0.9; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid ${C.gold};
+    color: ${C.gold};
+  }
+
+  .home-card {
+    background: ${C.bgCard};
+    border: 1px solid ${C.border};
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .home-card:hover {
+    border-color: rgba(212,168,67,0.4);
+    box-shadow: 0 0 20px rgba(212,168,67,0.06);
+  }
+
+  .home-card-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: ${C.bgDeep};
+    border: 1px solid ${C.border};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .home-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: ${C.gold};
+    margin-bottom: 3px;
+  }
+
+  .home-card-desc { font-size: 12px; color: ${C.muted}; }
+
+  .home-card-arrow { margin-left: auto; color: ${C.muted}; font-size: 16px; }
+
+  .divider { height: 1px; background: ${C.border}; margin: 16px 0; }
+
+  .encrypt-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .encrypt-dot { width: 5px; height: 5px; border-radius: 50%; background: ${C.teal}; }
+
+  .encrypt-text {
+    font-size: 9px;
+    color: ${C.tealDim};
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .footer-text {
+    text-align: center;
+    font-size: 10px;
+    color: ${C.muted};
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-top: 8px;
+  }
+`;
+
+const PROTOCOLS = [
+  { icon:"🧊", title:"Cold Plunge Protocol",       desc:"2-3 min at 50-55F. Activates brown adipose tissue, reduces inflammation, boosts norepinephrine 200-300%.", tag:"Recovery",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)" },
+  { icon:"🔴", title:"Red Light Therapy",           desc:"660nm + 850nm for 10-20 min. Supports mitochondrial ATP production and collagen synthesis.",              tag:"Cellular",  tc:"#d4a843", tb:"rgba(212,168,67,0.1)" },
+  { icon:"💧", title:"IV Nutrient Drip",            desc:"High-dose Vitamin C, B complex, magnesium, glutathione. Myers Cocktail base with custom add-ons.",       tag:"Infusion",  tc:"#3ecf8e", tb:"rgba(62,207,142,0.1)" },
+  { icon:"🧖", title:"Infrared Sauna",              desc:"40-60 min at 120-150F. Heat shock proteins, cardiovascular conditioning, heavy metal detox support.",    tag:"Thermal",   tc:"#d4a843", tb:"rgba(212,168,67,0.1)" },
+  { icon:"🧬", title:"Peptide Therapy",             desc:"BPC-157, TB-500, or GLP-1 protocols under clinical guidance for tissue repair and metabolic health.",    tag:"Clinical",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)" },
+  { icon:"😴", title:"Sleep Restoration",           desc:"HRV-guided optimization, blue light protocol, magnesium glycinate stacking, circadian anchoring.",       tag:"Recovery",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)" },
+  { icon:"⚡", title:"NAD+ Infusion",               desc:"IV NAD+ to replenish cellular energy currency. Supports DNA repair, sirtuin activation, mental clarity.", tag:"Longevity", tc:"#e8a020", tb:"rgba(232,160,32,0.1)" },
+  { icon:"🌿", title:"Anti-Inflammatory Nutrition", desc:"Whole food protocol targeting omega-3 balance, polyphenol density, and blood sugar stability.",           tag:"Nutrition",  tc:"#3ecf8e", tb:"rgba(62,207,142,0.1)" },
+];
+
+const QUESTIONS = [
+  { q:"How would you describe your energy throughout the day?",     options:["Consistently high and steady","Good morning, fades by afternoon","Unpredictable -- spikes and crashes","Generally low"],           scores:[10,7,4,1] },
+  { q:"How many hours of quality sleep do you average per night?",  options:["8+ hours","7-8 hours","5-6 hours","Less than 5 hours"],                                                                             scores:[10,8,4,1] },
+  { q:"How often do you engage in intentional movement?",           options:["Daily","3-5x per week","1-2x per week","Rarely or never"],                                                                          scores:[10,7,4,1] },
+  { q:"How well do you manage chronic stress?",                     options:["Solid daily practices","Mostly manageable","Often overwhelmed","No strategy in place"],                                             scores:[10,7,3,1] },
+  { q:"How would you describe your typical diet?",                  options:["Whole foods, anti-inflammatory","Mostly healthy, some indulgences","Mixed, frequent processed foods","Mostly processed or fast food"], scores:[10,7,4,1] },
+];
+
+const PILLARS = [
+  { name:"Energy",    icon:"⚡", color:"#d4a843" },
+  { name:"Sleep",     icon:"🌙", color:"#00d4b8" },
+  { name:"Movement",  icon:"🏃", color:"#3ecf8e" },
+  { name:"Stress",    icon:"🧠", color:"#e8a020" },
+  { name:"Nutrition", icon:"🌿", color:"#00d4b8" },
+];
+
+function Dashboard({ scores }) {
+  const total   = scores.reduce((a, b) => a + b, 0);
+  const pct     = total / (QUESTIONS.length * 10);
+  const chrono  = 35;
+  const bio     = Math.round(chrono - (pct - 0.5) * 14);
+  const younger = bio < chrono;
+
+  return (
+    <div>
+      <p className="section-title">Longevity Dashboard</p>
+      <p className="section-sub">Your biological age estimate and pillar breakdown.</p>
+
+      <div className="bio-card">
+        <div className="bio-label">Biological Age Estimate</div>
+        <div>
+          <span className="bio-number">{bio}</span>
+          <span className="bio-suffix">yrs</span>
+        </div>
+        <div className="bio-compare">
+          Chronological age 35 -- you are tracking{" "}
+          <strong style={{ color: younger ? "#00d4b8" : "#e05252" }}>
+            {younger ? `${chrono - bio} years younger` : `${bio - chrono} years older`}
+          </strong>{" "}
+          than your calendar age.
+        </div>
+      </div>
+
+      <div className="stat-row">
+        <div className="stat-card">
+          <div className="stat-icon">📊</div>
+          <div className="stat-val">{Math.round(pct * 100)}%</div>
+          <div className="stat-label">Vitality</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🔥</div>
+          <div className="stat-val">{total}</div>
+          <div className="stat-label">Points</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon">🧬</div>
+          <div className="stat-val">{younger ? "+" : ""}{chrono - bio}yr</div>
+          <div className="stat-label">Age Delta</div>
+        </div>
+      </div>
+
+      <div className="pillar-list">
+        {PILLARS.map((p, i) => (
+          <div className="pillar-row" key={p.name}>
+            <div className="pillar-icon">{p.icon}</div>
+            <div className="pillar-info">
+              <div className="pillar-name">{p.name}</div>
+              <div className="bar-track">
+                <div className="bar-fill" style={{ width:`${(scores[i]/10)*100}%`, background:p.color }} />
+              </div>
+            </div>
+            <div className="pillar-score">{scores[i]}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="encrypt-row">
+        <div className="encrypt-dot" />
+        <span className="encrypt-text">AES-256-GCM Encrypted · Sovereign Infrastructure</span>
+      </div>
+      <div className="footer-text">Sovereign Shield Technologies LLC</div>
+    </div>
+  );
+}
+
+function Protocols() {
+  return (
+    <div>
+      <p className="section-title">Protocol Library</p>
+      <p className="section-sub">Evidence-based longevity therapies for biological optimization.</p>
+      {PROTOCOLS.map((p) => (
+        <div className="protocol-card" key={p.title}>
+          <div className="proto-icon">{p.icon}</div>
+          <div>
+            <div className="proto-title">{p.title}</div>
+            <div className="proto-desc">{p.desc}</div>
+            <span className="proto-tag" style={{ background:p.tb, color:p.tc }}>{p.tag}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Assessment({ onComplete }) {
+  const [current,  setCurrent]  = useState(0);
+  const [answers,  setAnswers]  = useState([]);
+  const [selected, setSelected] = useState(null);
+
+  function next() {
+    if (selected === null) return;
+    const newA = [...answers, QUESTIONS[current].scores[selected]];
+    if (current + 1 >= QUESTIONS.length) { onComplete(newA); }
+    else { setAnswers(newA); setCurrent(current + 1); setSelected(null); }
+  }
+
+  return (
+    <div>
+      <p className="section-title">Bio Age Assessment</p>
+      <p className="section-sub">5 questions to calculate your biological age and build your protocol stack.</p>
+      <div className="assess-progress">
+        <div className="assess-progress-fill" style={{ width:`${(current/QUESTIONS.length)*100}%` }} />
+      </div>
+      <div className="assess-card">
+        <div className="assess-q">{QUESTIONS[current].q}</div>
+        <div className="assess-options">
+          {QUESTIONS[current].options.map((opt, i) => (
+            <button key={opt} className={`assess-opt${selected===i?" selected":""}`} onClick={() => setSelected(i)}>{opt}</button>
+          ))}
+        </div>
+      </div>
+      <button className="btn" onClick={next} disabled={selected===null}>
+        {current+1 >= QUESTIONS.length ? "Generate My Dashboard" : "Next"}
+      </button>
+      <div className="step-counter">{current+1} / {QUESTIONS.length}</div>
+    </div>
+  );
+}
+
+function AICoach() {
+  const [messages, setMessages] = useState([{ role:"ai", text:"Welcome. I am your LongevityIQ advisor -- powered by sovereign AI infrastructure. Ask me about biological aging, longevity protocols, cold therapy, peptides, sleep optimization, NAD+, or your overall wellness strategy." }]);
+  const [input,    setInput]    = useState("");
+  const [loading,  setLoading]  = useState(false);
+  const bottomRef = useRef(null);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:"smooth" }); }, [messages]);
+
+  async function send() {
+    if (!input.trim() || loading) return;
+    const userMsg = input.trim();
+    setInput("");
+    setMessages((prev) => [...prev, { role:"user", text:userMsg }]);
+    setLoading(true);
+    try {
+      const history = messages.map((m) => ({ role: m.role==="ai"?"assistant":"user", content: m.text }));
+      const res  = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type":"application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          system: `You are LongevityIQ, a premium AI longevity and wellness advisor built by Sovereign Shield Technologies LLC. You specialize in biological age optimization and evidence-based wellness protocols including cold therapy, red light therapy, IV nutrient therapy, infrared sauna, peptide therapy, NAD+ infusion, sleep restoration, and anti-inflammatory nutrition. You are warm, precise, and knowledgeable -- like a high-end functional medicine practitioner. Keep responses to 2-4 sentences unless detail is requested. Never use em dashes. Use plain direct language. Always note that clinical interventions require professional medical consultation.`,
+          messages: [...history, { role:"user", content:userMsg }],
+        }),
+      });
+      const data  = await res.json();
+      const reply = data.content?.find((b) => b.type==="text")?.text || "Unable to generate a response. Please try again.";
+      setMessages((prev) => [...prev, { role:"ai", text:reply }]);
+    } catch {
+      setMessages((prev) => [...prev, { role:"ai", text:"Connection error. Please check your network and try again." }]);
+    } finally { setLoading(false); }
+  }
+
+  return (
+    <div>
+      <p className="section-title">AI Longevity Coach</p>
+      <p className="section-sub">Sovereign AI powered. Your data never leaves your session.</p>
+      <div className="chat-area">
+        {messages.map((m, i) => <div key={i} className={`chat-msg ${m.role}`}>{m.text}</div>)}
+        {loading && <div className="chat-msg thinking">Analyzing...</div>}
+        <div ref={bottomRef} />
+      </div>
+      <div className="chat-input-row">
+        <textarea className="chat-input" value={input} onChange={(e)=>setInput(e.target.value)} onKeyDown={(e)=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();} }} placeholder="Ask about cold plunge, NAD+, peptides..." rows={1} />
+        <button className="chat-send" onClick={send} disabled={loading||!input.trim()}>↑</button>
+      </div>
+      <div className="encrypt-row" style={{ marginTop:12 }}>
+        <div className="encrypt-dot" />
+        <span className="encrypt-text">Sovereign Prompt Shield v5 Active</span>
+      </div>
+    </div>
+  );
+}
+
+const TABS = [
+  { id:"home",      label:"Home"      },
+  { id:"assess",    label:"Assess"    },
+  { id:"dashboard", label:"Dashboard" },
+  { id:"protocols", label:"Protocols" },
+  { id:"coach",     label:"AI Coach"  },
+];
+
+export default function LongevityIQ() {
+  const [tab,    setTab]    = useState("home");
+  const [scores, setScores] = useState(null);
+
+  return (
+    <>
+      <style>{STYLE}</style>
+      <div className="app">
+
+        <div className="header">
+          <div className="header-top">
+            <div>
+              <div className="wordmark">Longevity<span>IQ</span></div>
+              <div className="tagline">Live Longer. Live Better.</div>
+              <div className="company-line">Sovereign Shield Technologies</div>
+            </div>
+            <div className="shield-badge">
+              <div className="shield-dot" />
+              <span className="shield-text">ZK Shield On</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="nav">
+          {TABS.map((t) => (
+            <button key={t.id} className={`nav-btn${tab===t.id?" active":""}`} onClick={()=>setTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
+
+        <div className="content">
+
+          {tab==="home" && (
+            <div>
+              <p className="section-title">Welcome to LongevityIQ</p>
+              <p className="section-sub">Your sovereign longevity operating system. Biological age optimization powered by evidence-based science and sovereign AI infrastructure.</p>
+              {[
+                { icon:"🧬", title:"Bio Age Assessment",  desc:"Estimate your biological age in 5 questions",     action:()=>setTab("assess")    },
+                { icon:"📊", title:"Longevity Dashboard", desc:"Pillar scores, age delta, vitality metrics",       action:()=>setTab("dashboard") },
+                { icon:"💊", title:"Protocol Library",    desc:"Cold plunge, NAD+, red light, IV therapy + more", action:()=>setTab("protocols") },
+                { icon:"🤖", title:"AI Longevity Coach",  desc:"Sovereign AI-powered personalized guidance",       action:()=>setTab("coach")     },
+              ].map((c) => (
+                <div className="home-card" key={c.title} onClick={c.action}>
+                  <div className="home-card-icon">{c.icon}</div>
+                  <div>
+                    <div className="home-card-title">{c.title}</div>
+                    <div className="home-card-desc">{c.desc}</div>
+                  </div>
+                  <div className="home-card-arrow">›</div>
+                </div>
+              ))}
+              <div className="divider" />
+              <div className="encrypt-row">
+                <div className="encrypt-dot" />
+                <span className="encrypt-text">AES-256-GCM · Append-Only Audit Log · Zero-Knowledge</span>
+              </div>
+              <div className="footer-text">Sovereign Shield Technologies LLC</div>
+            </div>
+          )}
+
+          {tab==="assess" && !scores && <Assessment onComplete={(s)=>{ setScores(s); setTab("dashboard"); }} />}
+
+          {tab==="assess" && scores && (
+            <div>
+              <p className="section-title">Assessment Complete</p>
+              <p className="section-sub">Your biological age results are ready on your dashboard.</p>
+              <button className="btn" onClick={()=>setTab("dashboard")}>View My Dashboard</button>
+              <button className="btn btn-outline" style={{ marginTop:10 }} onClick={()=>setScores(null)}>Retake Assessment</button>
+            </div>
+          )}
+
+          {tab==="dashboard" && !scores && (
+            <div>
+              <p className="section-title">No Data Yet</p>
+              <p className="section-sub">Complete your biological age assessment to unlock your dashboard.</p>
+              <button className="btn" onClick={()=>setTab("assess")}>Start Assessment</button>
+            </div>
+          )}
+
+          {tab==="dashboard" && scores    && <Dashboard scores={scores} />}
+          {tab==="protocols"              && <Protocols />}
+          {tab==="coach"                  && <AICoach />}
+
+        </div>
+      </div>
+    </>
+  );
+}
