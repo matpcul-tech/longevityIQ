@@ -1,659 +1,454 @@
-import { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LongevityIQ — Sovereign Wellness Platform</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Outfit:wght@300;400;500;600&display=swap');
 
-const C = {
-  bg:      "#07101f",
-  bgDeep:  "#040c17",
-  bgCard:  "#0d1b2e",
-  border:  "#1a2f47",
-  gold:    "#d4a843",
-  goldDim: "#8a6820",
-  teal:    "#00d4b8",
-  tealDim: "#007a6b",
-  green:   "#3ecf8e",
-  white:   "#f0f4f8",
-  muted:   "#6b8099",
-  red:     "#e05252",
-};
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
-const STYLE = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#07101f;--bgc:#0d1b2e;--bgd:#040c17;
+  --bdr:#1a2f47;--gold:#d4a843;--goldd:#8a6820;
+  --teal:#00d4b8;--teald:#007a6b;
+  --white:#f0f4f8;--muted:#6b8099;
+  --green:#3ecf8e;--red:#e05252;--text:#c8d8e8;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min-height:100vh;max-width:480px;margin:0 auto}
 
-  body {
-    background: ${C.bg};
-    font-family: 'Outfit', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
+/* HEADER */
+.hdr{background:var(--bgd);border-bottom:1px solid var(--bdr);padding:40px 20px 20px;position:relative}
+.hdr::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal),var(--gold))}
+.hdr-row{display:flex;justify-content:space-between;align-items:flex-start}
+.wordmark{font-family:'Playfair Display',serif;font-size:26px;color:var(--gold)}
+.wordmark span{color:var(--teal)}
+.tagline{font-size:12px;font-weight:300;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.co-line{font-size:10px;color:var(--goldd);letter-spacing:1.5px;text-transform:uppercase;margin-top:2px}
+.shield-badge{display:flex;align-items:center;gap:5px;background:var(--bgc);border:1px solid rgba(0,212,184,0.4);border-radius:20px;padding:4px 10px;flex-shrink:0}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--teal);animation:pulse 2s ease infinite}
+.stext{font-size:10px;font-weight:600;letter-spacing:1.2px;color:var(--teal);text-transform:uppercase}
 
-  .fw-wrap {
-    min-height: 100vh;
-    background: ${C.bg};
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 32px 16px 60px;
-    position: relative;
-    overflow: hidden;
-  }
+/* NAV */
+.nav{display:flex;background:var(--bgd);border-bottom:1px solid var(--bdr);overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nav-btn{flex:1;min-width:60px;padding:13px 4px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:10px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap}
+.nav-btn.active{color:var(--gold);border-bottom-color:var(--gold)}
 
-  .fw-wrap::before {
-    content: '';
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, ${C.gold}, ${C.teal}, ${C.gold});
-    z-index: 10;
-  }
+/* CONTENT */
+.content{padding:20px 16px 100px}
+.sec-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);margin-bottom:4px}
+.sec-sub{font-size:13px;color:var(--muted);font-weight:300;margin-bottom:20px;line-height:1.5}
 
-  /* Radial glow behind wheel */
-  .glow-bg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -40%);
-    width: 600px;
-    height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(212,168,67,0.07) 0%, rgba(0,212,184,0.04) 40%, transparent 70%);
-    pointer-events: none;
-  }
+/* CARDS */
+.card{background:var(--bgc);border:1px solid var(--bdr);border-radius:14px;padding:18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s}
+.card:hover{border-color:rgba(212,168,67,0.4)}
+.card-icon{width:48px;height:48px;border-radius:14px;background:var(--bgd);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.card-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--gold);margin-bottom:3px}
+.card-desc{font-size:12px;color:var(--muted)}
+.card-arrow{margin-left:auto;color:var(--muted);font-size:16px}
 
-  .fw-header {
-    text-align: center;
-    margin-bottom: 28px;
-    position: relative;
-    z-index: 2;
-  }
+/* BIO CARD */
+.bio-card{background:var(--bgc);border:1px solid var(--bdr);border-radius:16px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+.bio-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--teal))}
+.bio-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.bio-num{font-family:'Playfair Display',serif;font-size:68px;line-height:1;color:var(--gold)}
+.bio-sfx{font-size:20px;color:var(--muted);margin-left:6px}
+.bio-cmp{font-size:13px;color:var(--muted);margin-top:10px}
 
-  .fw-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(22px, 5vw, 34px);
-    color: ${C.gold};
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
+/* STAT ROW */
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.stat-card{background:var(--bgc);border:1px solid var(--bdr);border-radius:12px;padding:14px 10px;text-align:center}
+.stat-icon{font-size:18px;margin-bottom:6px}
+.stat-val{font-family:'Playfair Display',serif;font-size:20px;color:var(--white);margin-bottom:2px}
+.stat-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
 
-  .fw-sub {
-    font-size: 13px;
-    color: ${C.muted};
-    font-weight: 300;
-    letter-spacing: 1px;
-  }
+/* PILLARS */
+.pillar-list{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.pillar-row{background:var(--bgc);border:1px solid var(--bdr);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.pillar-icon{font-size:18px;width:24px;text-align:center}
+.pillar-info{flex:1}
+.pillar-name{font-size:12px;font-weight:500;color:var(--text);margin-bottom:6px}
+.bar-track{height:4px;background:var(--bdr);border-radius:2px;overflow:hidden}
+.bar-fill{height:100%;border-radius:2px;transition:width 1.2s ease}
+.pillar-score{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);min-width:28px;text-align:right}
 
-  .fw-company {
-    font-size: 10px;
-    color: ${C.goldDim};
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    margin-top: 4px;
-  }
+/* PROTOCOLS */
+.proto-card{background:var(--bgc);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:10px;display:flex;gap:12px;cursor:pointer;transition:border-color .2s}
+.proto-card:hover{border-color:rgba(212,168,67,0.4)}
+.proto-icon{width:44px;height:44px;border-radius:12px;border:1px solid var(--bdr);background:var(--bgd);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.proto-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--gold);margin-bottom:4px}
+.proto-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:7px}
+.proto-tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:10px;letter-spacing:1px;font-weight:600;text-transform:uppercase}
 
-  /* SVG container */
-  .wheel-container {
-    position: relative;
-    width: min(520px, 96vw);
-    height: min(520px, 96vw);
-    margin: 0 auto;
-    z-index: 2;
-  }
+/* ASSESS */
+.assess-prog{height:3px;background:var(--bdr);border-radius:2px;margin-bottom:20px;overflow:hidden}
+.assess-prog-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--teal));transition:width .4s ease}
+.assess-card{background:var(--bgc);border:1px solid var(--bdr);border-radius:16px;padding:20px;margin-bottom:16px}
+.assess-q{font-family:'Playfair Display',serif;font-size:16px;color:var(--white);margin-bottom:16px;line-height:1.5}
+.assess-opts{display:flex;flex-direction:column;gap:8px}
+.assess-opt{padding:11px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bgd);font-size:13px;color:var(--text);cursor:pointer;text-align:left;font-family:'Outfit',sans-serif;transition:all .15s}
+.assess-opt:hover{border-color:rgba(212,168,67,0.5);color:var(--gold)}
+.assess-opt.selected{background:rgba(212,168,67,0.12);border-color:var(--gold);color:var(--gold)}
+.step-ctr{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;letter-spacing:1px}
 
-  .wheel-svg {
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-  }
+/* CHAT */
+.chat-area{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;min-height:220px}
+.msg{max-width:86%;padding:11px 14px;border-radius:14px;font-size:13px;line-height:1.6}
+.msg.ai{background:var(--bgc);border:1px solid var(--bdr);color:var(--text);border-radius:4px 14px 14px 14px;align-self:flex-start}
+.msg.user{background:rgba(212,168,67,0.12);border:1px solid rgba(212,168,67,0.3);color:var(--white);border-radius:14px 4px 14px 14px;align-self:flex-end}
+.msg.thinking{background:var(--bgc);border:1px solid var(--bdr);color:var(--muted);font-style:italic;align-self:flex-start;border-radius:4px 14px 14px 14px}
+.chat-row{display:flex;gap:8px;align-items:flex-end}
+.chat-input{flex:1;padding:12px 14px;border-radius:12px;border:1px solid var(--bdr);background:var(--bgc);font-family:'Outfit',sans-serif;font-size:13px;color:var(--white);resize:none;outline:none;min-height:44px;max-height:120px;transition:border-color .2s}
+.chat-input::placeholder{color:var(--muted)}
+.chat-input:focus{border-color:rgba(212,168,67,0.5)}
+.chat-send{width:44px;height:44px;border-radius:12px;border:none;background:var(--gold);color:var(--bgd);font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .2s}
+.chat-send:hover{opacity:.88}
+.chat-send:disabled{background:var(--bdr);color:var(--muted);cursor:not-allowed}
 
-  /* Center shield pulse */
-  @keyframes shieldPulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.85; transform: scale(1.04); }
-  }
+/* BUTTONS */
+.btn{width:100%;padding:15px;border-radius:12px;border:none;background:var(--gold);color:var(--bgd);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;margin-top:8px;transition:opacity .2s}
+.btn:hover{opacity:.9}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-outline{background:transparent;border:1px solid var(--gold);color:var(--gold)}
 
-  @keyframes rotateCW {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(360deg); }
-  }
+/* FOOTER */
+.enc-row{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px}
+.enc-dot{width:5px;height:5px;border-radius:50%;background:var(--teal)}
+.enc-text{font-size:9px;color:var(--teald);letter-spacing:1px;text-transform:uppercase}
+.footer-txt{text-align:center;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;opacity:.5;margin-top:8px}
+.divider{height:1px;background:var(--bdr);margin:16px 0}
 
-  @keyframes rotateCCW {
-    from { transform: rotate(0deg); }
-    to   { transform: rotate(-360deg); }
-  }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.msg{animation:fadeUp .25s ease}
 
-  @keyframes arrowFlow {
-    0%   { stroke-dashoffset: 200; opacity: 0.3; }
-    50%  { opacity: 1; }
-    100% { stroke-dashoffset: 0;   opacity: 0.3; }
-  }
+/* HIDDEN */
+.page{display:none}
+.page.active{display:block}
+</style>
+</head>
+<body>
 
-  @keyframes nodeGlow {
-    0%, 100% { filter: drop-shadow(0 0 6px rgba(212,168,67,0.4)); }
-    50%       { filter: drop-shadow(0 0 18px rgba(212,168,67,0.9)); }
-  }
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-row">
+    <div>
+      <div class="wordmark">Longevity<span>IQ</span></div>
+      <div class="tagline">Live Longer. Live Better.</div>
+      <div class="co-line">Sovereign Shield Technologies</div>
+    </div>
+    <div class="shield-badge">
+      <div class="sdot"></div>
+      <span class="stext">ZK Shield On</span>
+    </div>
+  </div>
+</div>
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+<!-- NAV -->
+<div class="nav">
+  <button class="nav-btn active" onclick="showTab('home')">Home</button>
+  <button class="nav-btn" onclick="showTab('assess')">Assess</button>
+  <button class="nav-btn" onclick="showTab('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="showTab('protocols')">Protocols</button>
+  <button class="nav-btn" onclick="showTab('coach')">AI Coach</button>
+</div>
 
-  .ring-outer {
-    transform-origin: center;
-    animation: rotateCW 40s linear infinite;
-  }
+<!-- HOME -->
+<div id="tab-home" class="page active content">
+  <p class="sec-title">Welcome to LongevityIQ</p>
+  <p class="sec-sub">Your sovereign longevity operating system. Biological age optimization powered by evidence-based science and sovereign AI infrastructure.</p>
 
-  .ring-inner {
-    transform-origin: center;
-    animation: rotateCCW 28s linear infinite;
-  }
+  <div class="card" onclick="showTab('assess')">
+    <div class="card-icon">🧬</div>
+    <div><div class="card-title">Bio Age Assessment</div><div class="card-desc">Estimate your biological age in 5 questions</div></div>
+    <div class="card-arrow">›</div>
+  </div>
+  <div class="card" onclick="showTab('dashboard')">
+    <div class="card-icon">📊</div>
+    <div><div class="card-title">Longevity Dashboard</div><div class="card-desc">Pillar scores, age delta, vitality metrics</div></div>
+    <div class="card-arrow">›</div>
+  </div>
+  <div class="card" onclick="showTab('protocols')">
+    <div class="card-icon">💊</div>
+    <div><div class="card-title">Protocol Library</div><div class="card-desc">Cold plunge, NAD+, red light, IV therapy + more</div></div>
+    <div class="card-arrow">›</div>
+  </div>
+  <div class="card" onclick="showTab('coach')">
+    <div class="card-icon">🤖</div>
+    <div><div class="card-title">AI Longevity Coach</div><div class="card-desc">Sovereign AI-powered personalized guidance</div></div>
+    <div class="card-arrow">›</div>
+  </div>
 
-  .shield-center {
-    transform-origin: center;
-    animation: shieldPulse 3s ease-in-out infinite;
-  }
+  <div class="divider"></div>
+  <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">AES-256-GCM · Append-Only Audit Log · Zero-Knowledge</span></div>
+  <div class="footer-txt">Sovereign Shield Technologies LLC</div>
+</div>
 
-  .arrow-path {
-    stroke-dasharray: 8 4;
-    animation: arrowFlow 3s linear infinite;
-  }
+<!-- ASSESS -->
+<div id="tab-assess" class="page content">
+  <p class="sec-title">Bio Age Assessment</p>
+  <p class="sec-sub">5 questions to calculate your biological age and build your protocol stack.</p>
+  <div class="assess-prog"><div class="assess-prog-fill" id="assess-bar" style="width:0%"></div></div>
+  <div class="assess-card">
+    <div class="assess-q" id="assess-q">Loading...</div>
+    <div class="assess-opts" id="assess-opts"></div>
+  </div>
+  <button class="btn" id="assess-next" onclick="nextQuestion()" disabled>Next</button>
+  <div class="step-ctr" id="assess-ctr">1 / 5</div>
+</div>
 
-  .node-group {
-    cursor: pointer;
-    animation: fadeIn 0.6s ease forwards;
-  }
+<!-- DASHBOARD -->
+<div id="tab-dashboard" class="page content">
+  <p class="sec-title">Longevity Dashboard</p>
+  <p class="sec-sub" id="dash-sub">Complete your assessment to unlock your dashboard.</p>
+  <div id="dash-content">
+    <button class="btn" onclick="showTab('assess')">Start Assessment</button>
+  </div>
+</div>
 
-  .node-group:hover .node-circle {
-    filter: drop-shadow(0 0 20px rgba(212,168,67,0.8));
-  }
+<!-- PROTOCOLS -->
+<div id="tab-protocols" class="page content">
+  <p class="sec-title">Protocol Library</p>
+  <p class="sec-sub">Evidence-based longevity therapies for biological optimization.</p>
+  <div id="proto-list"></div>
+</div>
 
-  /* Info panel */
-  .info-panel {
-    margin-top: 24px;
-    width: min(520px, 96vw);
-    background: ${C.bgCard};
-    border: 1px solid ${C.border};
-    border-radius: 16px;
-    padding: 20px 22px;
-    position: relative;
-    z-index: 2;
-    animation: fadeIn 0.4s ease;
-    border-top: 2px solid ${C.gold};
-  }
+<!-- AI COACH -->
+<div id="tab-coach" class="page content">
+  <p class="sec-title">AI Longevity Coach</p>
+  <p class="sec-sub">Sovereign AI powered. Your data never leaves your session.</p>
+  <div class="chat-area" id="chat-area"></div>
+  <div class="chat-row">
+    <textarea class="chat-input" id="chat-input" placeholder="Ask about cold plunge, NAD+, peptides..." rows="1" onkeydown="chatKey(event)"></textarea>
+    <button class="chat-send" id="chat-send" onclick="sendChat()">↑</button>
+  </div>
+  <div class="enc-row" style="margin-top:12px"><div class="enc-dot"></div><span class="enc-text">Sovereign Prompt Shield v5 Active</span></div>
+</div>
 
-  .info-label {
-    font-size: 10px;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: ${C.gold};
-    margin-bottom: 6px;
-    font-weight: 600;
-  }
-
-  .info-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    color: ${C.white};
-    margin-bottom: 8px;
-  }
-
-  .info-desc {
-    font-size: 13px;
-    color: ${C.muted};
-    line-height: 1.65;
-  }
-
-  .info-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-top: 12px;
-  }
-
-  .info-tag {
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-  }
-
-  .shield-badge {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    margin-top: 20px;
-    z-index: 2;
-    position: relative;
-  }
-
-  .shield-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: ${C.teal};
-    animation: shieldPulse 2s ease infinite;
-  }
-
-  .shield-text {
-    font-size: 10px;
-    font-weight: 600;
-    letter-spacing: 2px;
-    color: ${C.teal};
-    text-transform: uppercase;
-  }
-
-  .tap-hint {
-    text-align: center;
-    font-size: 11px;
-    color: ${C.muted};
-    margin-top: 12px;
-    letter-spacing: 1px;
-    opacity: 0.7;
-    z-index: 2;
-    position: relative;
-  }
-`;
-
-// Flywheel nodes -- 6 outer + Sovereign Shield center
-const NODES = [
-  {
-    id: "shield",
-    label: "Sovereign\nPrompt Shield",
-    sublabel: "v5 Core",
-    color: C.gold,
-    icon: "⬡",
-    angle: null, // center
-    desc: "The engine of everything. AES-256-GCM encryption, real-time SSN and PHI blocking, append-only audit log. Provisional patent filed at USPTO. Powers all four products as shared sovereign infrastructure.",
-    tags: ["USPTO Patent Pending", "AES-256-GCM", "HIPAA-Aligned", "Zero-Knowledge"],
-    tagColor: C.gold,
-    tagBg: "rgba(212,168,67,0.15)",
-  },
-  {
-    id: "healthos",
-    label: "Sovereign\nHealth OS",
-    sublabel: "Live",
-    color: C.teal,
-    icon: "⊕",
-    angle: 270,
-    desc: "The flagship platform. AI health insights, encrypted patient onboarding, Chickasaw meal plans, workout plans, clinical dashboard, and the sovereign health LLM trained to 97.78% accuracy on 41,000+ pairs.",
-    tags: ["sovereignhealthcareos.com", "LLM 97.78%", "Chickasaw Nation"],
-    tagColor: C.teal,
-    tagBg: "rgba(0,212,184,0.12)",
-  },
-  {
-    id: "careiq",
-    label: "CareIQ OS",
-    sublabel: "Live",
-    color: C.teal,
-    icon: "◎",
-    angle: 330,
-    desc: "FQHC-focused sovereign health platform. Clinical intelligence for the safety net. Serves 1,600+ FQHCs and 30M community health patients nationwide. Pricing: $24K-$96K per year per clinic.",
-    tags: ["care-iq-sable.vercel.app", "FQHC", "$48K/yr Mid Contract"],
-    tagColor: C.teal,
-    tagBg: "rgba(0,212,184,0.12)",
-  },
-  {
-    id: "longevity",
-    label: "LongevityIQ\nSpa",
-    sublabel: "Franchise",
-    color: "#e8a020",
-    icon: "◈",
-    angle: 30,
-    desc: "Sovereign wellness franchise for rural Oklahoma and Indian Country. Non-clinical launch model: infrared sauna, cold plunge, red light therapy, breathwork. $8K-$22K per location. Scales to 574 tribal nations.",
-    tags: ["Franchise Model", "Rural Oklahoma", "No License Phase 1", "574 Tribes TAM"],
-    tagColor: "#e8a020",
-    tagBg: "rgba(232,160,32,0.12)",
-  },
-  {
-    id: "carecircle",
-    label: "CareCircle",
-    sublabel: "Live",
-    color: C.green,
-    icon: "◉",
-    angle: 90,
-    desc: "Elder care family coordination platform. Two editions: FQHC and Sovereign. Invite code model with emergency SMS alerts via Twilio. Keeps elder health data sovereign and within the family.",
-    tags: ["carecircleos.vercel.app", "Elder Care", "Twilio SMS", "Invite Model"],
-    tagColor: C.green,
-    tagBg: "rgba(62,207,142,0.12)",
-  },
-  {
-    id: "eduiq",
-    label: "EduIQ",
-    sublabel: "Live",
-    color: C.green,
-    icon: "◆",
-    angle: 150,
-    desc: "Child mental health early warning system. Standalone behavioral health screening platform for school-adjacent early intervention. Fills a critical gap in rural Oklahoma and tribal education systems.",
-    tags: ["eduiq.vercel.app", "Child Mental Health", "Early Warning", "School-Adjacent"],
-    tagColor: C.green,
-    tagBg: "rgba(62,207,142,0.12)",
-  },
-  {
-    id: "llm",
-    label: "Sovereign\nHealth LLM",
-    sublabel: "97.78% Acc",
-    color: C.gold,
-    icon: "◐",
-    angle: 210,
-    desc: "Fine-tuned sovereign health language model. 97.78% accuracy, loss 0.1143, trained on 41,000+ pairs. Built on Llama 3.2 3B via Azure ML. Powers AI health insights across all Sovereign Shield products.",
-    tags: ["41,000+ Training Pairs", "Loss 0.1143", "Azure ML", "Llama 3.2 3B"],
-    tagColor: C.gold,
-    tagBg: "rgba(212,168,67,0.15)",
-  },
+<script>
+// ── DATA ──────────────────────────────────────
+const QUESTIONS = [
+  { q:"How would you describe your energy throughout the day?",
+    opts:["Consistently high and steady","Good morning, fades by afternoon","Unpredictable -- spikes and crashes","Generally low"], scores:[10,7,4,1] },
+  { q:"How many hours of quality sleep do you average per night?",
+    opts:["8+ hours","7-8 hours","5-6 hours","Less than 5 hours"], scores:[10,8,4,1] },
+  { q:"How often do you engage in intentional movement?",
+    opts:["Daily","3-5x per week","1-2x per week","Rarely or never"], scores:[10,7,4,1] },
+  { q:"How well do you manage chronic stress?",
+    opts:["Solid daily practices","Mostly manageable","Often overwhelmed","No strategy in place"], scores:[10,7,3,1] },
+  { q:"How would you describe your typical diet?",
+    opts:["Whole foods, anti-inflammatory","Mostly healthy, some indulgences","Mixed, frequent processed foods","Mostly processed or fast food"], scores:[10,7,4,1] },
 ];
 
-const CX = 260; // center x of SVG viewBox
-const CY = 260; // center y
-const ORBIT_R = 175; // orbit radius for nodes
-const NODE_R  = 48;  // node circle radius
-const CENTER_R = 72; // center shield radius
+const PILLARS = [
+  { name:"Energy",    icon:"⚡", color:"#d4a843" },
+  { name:"Sleep",     icon:"🌙", color:"#00d4b8" },
+  { name:"Movement",  icon:"🏃", color:"#3ecf8e" },
+  { name:"Stress",    icon:"🧠", color:"#e8a020" },
+  { name:"Nutrition", icon:"🌿", color:"#00d4b8" },
+];
 
-function toXY(angleDeg, r) {
-  const rad = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: CX + r * Math.cos(rad), y: CY + r * Math.sin(rad) };
+const PROTOCOLS = [
+  { icon:"🧊", title:"Cold Plunge Protocol",       tag:"Recovery",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)",  desc:"2-3 min at 50-55F. Activates brown adipose tissue, reduces inflammation, boosts norepinephrine 200-300%." },
+  { icon:"🔴", title:"Red Light Therapy",           tag:"Cellular",  tc:"#d4a843", tb:"rgba(212,168,67,0.1)", desc:"660nm + 850nm for 10-20 min. Supports mitochondrial ATP production and collagen synthesis." },
+  { icon:"💧", title:"IV Nutrient Drip",            tag:"Infusion",  tc:"#3ecf8e", tb:"rgba(62,207,142,0.1)", desc:"High-dose Vitamin C, B complex, magnesium, glutathione. Myers Cocktail base with custom add-ons." },
+  { icon:"🧖", title:"Infrared Sauna",              tag:"Thermal",   tc:"#d4a843", tb:"rgba(212,168,67,0.1)", desc:"40-60 min at 120-150F. Heat shock proteins, cardiovascular conditioning, heavy metal detox support." },
+  { icon:"🧬", title:"Peptide Therapy",             tag:"Clinical",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)",  desc:"BPC-157, TB-500, or GLP-1 protocols under clinical guidance for tissue repair and metabolic health." },
+  { icon:"😴", title:"Sleep Restoration",           tag:"Recovery",  tc:"#00d4b8", tb:"rgba(0,212,184,0.1)",  desc:"HRV-guided optimization, blue light protocol, magnesium glycinate stacking, circadian anchoring." },
+  { icon:"⚡", title:"NAD+ Infusion",               tag:"Longevity", tc:"#e8a020", tb:"rgba(232,160,32,0.1)", desc:"IV NAD+ to replenish cellular energy currency. Supports DNA repair, sirtuin activation, mental clarity." },
+  { icon:"🌿", title:"Anti-Inflammatory Nutrition", tag:"Nutrition",  tc:"#3ecf8e", tb:"rgba(62,207,142,0.1)", desc:"Whole food protocol targeting omega-3 balance, polyphenol density, and blood sugar stability." },
+];
+
+// ── STATE ─────────────────────────────────────
+let currentQ = 0, selectedOpt = null, answers = [], scores = null;
+let chatHistory = [];
+let chatLoading = false;
+
+// ── NAV ───────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  const tabs = ['home','assess','dashboard','protocols','coach'];
+  const idx = tabs.indexOf(id);
+  document.querySelectorAll('.nav-btn')[idx]?.classList.add('active');
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'assess') renderQuestion();
 }
 
-// Build arc path between two nodes (curved around center)
-function arcPath(a1, a2) {
-  const p1 = toXY(a1, ORBIT_R - NODE_R - 6);
-  const p2 = toXY(a2, ORBIT_R - NODE_R - 6);
-  const mx = (p1.x + p2.x) / 2;
-  const my = (p1.y + p2.y) / 2;
-  const dx = mx - CX;
-  const dy = my - CY;
-  const len = Math.sqrt(dx*dx + dy*dy);
-  const cx2 = mx - dx/len * 30;
-  const cy2 = my - dy/len * 30;
-  return `M ${p1.x} ${p1.y} Q ${cx2} ${cy2} ${p2.x} ${p2.y}`;
+// ── ASSESS ────────────────────────────────────
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  document.getElementById('assess-q').textContent = q.q;
+  document.getElementById('assess-bar').style.width = ((currentQ / QUESTIONS.length)*100)+'%';
+  document.getElementById('assess-ctr').textContent = (currentQ+1)+' / '+QUESTIONS.length;
+  document.getElementById('assess-next').textContent = currentQ+1 >= QUESTIONS.length ? 'Generate My Dashboard' : 'Next';
+  selectedOpt = null;
+  document.getElementById('assess-next').disabled = true;
+
+  const opts = document.getElementById('assess-opts');
+  opts.innerHTML = '';
+  q.opts.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'assess-opt';
+    btn.textContent = opt;
+    btn.onclick = () => {
+      document.querySelectorAll('.assess-opt').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedOpt = i;
+      document.getElementById('assess-next').disabled = false;
+    };
+    opts.appendChild(btn);
+  });
 }
 
-export default function SovereignFlywheel() {
-  const [active, setActive] = useState("shield");
-  const [tick, setTick] = useState(0);
+function nextQuestion() {
+  if (selectedOpt === null) return;
+  answers.push(QUESTIONS[currentQ].scores[selectedOpt]);
+  if (currentQ + 1 >= QUESTIONS.length) {
+    scores = [...answers];
+    answers = [];
+    currentQ = 0;
+    selectedOpt = null;
+    showTab('dashboard');
+  } else {
+    currentQ++;
+    renderQuestion();
+  }
+}
 
-  useEffect(() => {
-    const id = setInterval(() => setTick(t => t + 1), 50);
-    return () => clearInterval(id);
-  }, []);
+// ── DASHBOARD ─────────────────────────────────
+function renderDashboard() {
+  const sub = document.getElementById('dash-sub');
+  const content = document.getElementById('dash-content');
+  if (!scores) {
+    sub.textContent = 'Complete your assessment to unlock your dashboard.';
+    content.innerHTML = '<button class="btn" onclick="showTab(\'assess\')">Start Assessment</button>';
+    return;
+  }
+  const total = scores.reduce((a,b)=>a+b,0);
+  const pct   = total / (QUESTIONS.length * 10);
+  const chrono = 35;
+  const bio    = Math.round(chrono - (pct - 0.5) * 14);
+  const younger = bio < chrono;
+  sub.textContent = 'Your biological age estimate and pillar breakdown.';
 
-  const activeNode = NODES.find(n => n.id === active);
-  const outerNodes = NODES.filter(n => n.angle !== null);
-
-  // spoke connections -- center to each outer node
-  const spokeAngles = outerNodes.map(n => n.angle);
-
-  return (
-    <>
-      <style>{STYLE}</style>
-      <div className="fw-wrap">
-        <div className="glow-bg" />
-
-        <div className="fw-header">
-          <div className="fw-title">Sovereign Shield Flywheel</div>
-          <div className="fw-sub">One sovereign infrastructure. Six compounding products.</div>
-          <div className="fw-company">Sovereign Shield Technologies LLC</div>
-        </div>
-
-        <div className="wheel-container">
-          <svg
-            className="wheel-svg"
-            viewBox="0 0 520 520"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              {/* Outer ring gradient */}
-              <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%">
-                <stop offset="0%"   stopColor={C.gold}  stopOpacity="0.06" />
-                <stop offset="100%" stopColor={C.teal}  stopOpacity="0.02" />
-              </radialGradient>
-
-              {/* Gold glow filter */}
-              <filter id="goldGlow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-
-              <filter id="tealGlow" x="-40%" y="-40%" width="180%" height="180%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-
-              {/* Arrow marker */}
-              <marker id="arrowGold" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L6,3 z" fill={C.gold} opacity="0.7" />
-              </marker>
-              <marker id="arrowTeal" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L6,3 z" fill={C.teal} opacity="0.7" />
-              </marker>
-            </defs>
-
-            {/* Background circle */}
-            <circle cx={CX} cy={CY} r={ORBIT_R + NODE_R + 20} fill={`url(#bgGrad)`} />
-
-            {/* Outer rotating ring decoration */}
-            <g className="ring-outer" style={{ transformOrigin: `${CX}px ${CY}px` }}>
-              <circle cx={CX} cy={CY} r={ORBIT_R + NODE_R + 14} fill="none" stroke={C.goldDim} strokeWidth="0.5" strokeDasharray="4 8" opacity="0.4" />
-            </g>
-
-            {/* Inner rotating ring decoration */}
-            <g className="ring-inner" style={{ transformOrigin: `${CX}px ${CY}px` }}>
-              <circle cx={CX} cy={CY} r={ORBIT_R - NODE_R - 20} fill="none" stroke={C.tealDim} strokeWidth="0.5" strokeDasharray="3 12" opacity="0.35" />
-            </g>
-
-            {/* Orbit track */}
-            <circle cx={CX} cy={CY} r={ORBIT_R} fill="none" stroke={C.border} strokeWidth="1" opacity="0.6" />
-
-            {/* Spokes from center to each node */}
-            {outerNodes.map(n => {
-              const pos = toXY(n.angle, ORBIT_R - NODE_R - 2);
-              const innerPos = toXY(n.angle, CENTER_R + 4);
-              const isActive = n.id === active;
-              return (
-                <line
-                  key={`spoke-${n.id}`}
-                  x1={innerPos.x} y1={innerPos.y}
-                  x2={pos.x} y2={pos.y}
-                  stroke={isActive ? n.color : C.border}
-                  strokeWidth={isActive ? 1.5 : 0.8}
-                  strokeDasharray={isActive ? "none" : "3 5"}
-                  opacity={isActive ? 0.9 : 0.35}
-                  style={{ transition: "all 0.4s ease" }}
-                />
-              );
-            })}
-
-            {/* Arc arrows between consecutive outer nodes */}
-            {outerNodes.map((n, i) => {
-              const next = outerNodes[(i + 1) % outerNodes.length];
-              const d = arcPath(n.angle, next.angle);
-              return (
-                <path
-                  key={`arc-${n.id}`}
-                  d={d}
-                  fill="none"
-                  stroke={C.gold}
-                  strokeWidth="1.2"
-                  opacity="0.25"
-                  strokeDasharray="200"
-                  className="arrow-path"
-                  markerEnd="url(#arrowGold)"
-                  style={{ animationDelay: `${i * 0.5}s` }}
-                />
-              );
-            })}
-
-            {/* CENTER: Sovereign Prompt Shield */}
-            <g
-              className="shield-center node-group"
-              style={{ transformOrigin: `${CX}px ${CY}px`, animationDelay: "0s" }}
-              onClick={() => setActive("shield")}
-            >
-              {/* Outer glow ring */}
-              <circle
-                cx={CX} cy={CY} r={CENTER_R + 10}
-                fill="none"
-                stroke={C.gold}
-                strokeWidth="1"
-                opacity={active === "shield" ? 0.5 : 0.15}
-                style={{ transition: "opacity 0.4s" }}
-              />
-
-              {/* Main center circle */}
-              <circle
-                cx={CX} cy={CY} r={CENTER_R}
-                fill={C.bgDeep}
-                stroke={C.gold}
-                strokeWidth={active === "shield" ? 2.5 : 1.5}
-                className="node-circle"
-                filter={active === "shield" ? "url(#goldGlow)" : "none"}
-                style={{ transition: "all 0.4s" }}
-              />
-
-              {/* Hexagon shield symbol */}
-              <text
-                x={CX} y={CY - 10}
-                textAnchor="middle"
-                fontSize="28"
-                fill={C.gold}
-                fontFamily="Georgia"
-              >⬡</text>
-
-              <text
-                x={CX} y={CY + 10}
-                textAnchor="middle"
-                fontSize="9"
-                fill={C.gold}
-                fontFamily="Outfit"
-                fontWeight="700"
-                letterSpacing="1"
-              >SOVEREIGN</text>
-
-              <text
-                x={CX} y={CY + 22}
-                textAnchor="middle"
-                fontSize="9"
-                fill={C.gold}
-                fontFamily="Outfit"
-                fontWeight="700"
-                letterSpacing="1"
-              >PROMPT</text>
-
-              <text
-                x={CX} y={CY + 34}
-                textAnchor="middle"
-                fontSize="9"
-                fill={C.gold}
-                fontFamily="Outfit"
-                fontWeight="700"
-                letterSpacing="1"
-              >SHIELD v5</text>
-            </g>
-
-            {/* OUTER NODES */}
-            {outerNodes.map((n, i) => {
-              const pos = toXY(n.angle, ORBIT_R);
-              const isActive = n.id === active;
-              const lines = n.label.split("\n");
-
-              return (
-                <g
-                  key={n.id}
-                  className="node-group"
-                  style={{ animationDelay: `${0.1 + i * 0.1}s` }}
-                  onClick={() => setActive(n.id)}
-                >
-                  {/* Active outer glow */}
-                  {isActive && (
-                    <circle
-                      cx={pos.x} cy={pos.y} r={NODE_R + 10}
-                      fill="none"
-                      stroke={n.color}
-                      strokeWidth="1"
-                      opacity="0.4"
-                    />
-                  )}
-
-                  {/* Node circle */}
-                  <circle
-                    cx={pos.x} cy={pos.y} r={NODE_R}
-                    fill={C.bgCard}
-                    stroke={n.color}
-                    strokeWidth={isActive ? 2.5 : 1.2}
-                    className="node-circle"
-                    filter={isActive ? "url(#goldGlow)" : "none"}
-                    style={{ transition: "all 0.3s ease" }}
-                  />
-
-                  {/* Icon */}
-                  <text
-                    x={pos.x} y={pos.y - 10}
-                    textAnchor="middle"
-                    fontSize="16"
-                    fill={n.color}
-                    fontFamily="Georgia"
-                  >{n.icon}</text>
-
-                  {/* Label lines */}
-                  {lines.map((line, li) => (
-                    <text
-                      key={li}
-                      x={pos.x}
-                      y={pos.y + 6 + li * 11}
-                      textAnchor="middle"
-                      fontSize="8.5"
-                      fill={isActive ? C.white : C.muted}
-                      fontFamily="Outfit"
-                      fontWeight="600"
-                      style={{ transition: "fill 0.3s" }}
-                    >{line}</text>
-                  ))}
-
-                  {/* Sublabel */}
-                  <text
-                    x={pos.x}
-                    y={pos.y + (lines.length > 1 ? 30 : 20)}
-                    textAnchor="middle"
-                    fontSize="7.5"
-                    fill={n.color}
-                    fontFamily="Outfit"
-                    fontWeight="600"
-                    opacity="0.8"
-                    letterSpacing="0.5"
-                  >{n.sublabel}</text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <div className="tap-hint">Tap any node to explore</div>
-
-        {/* Info panel */}
-        {activeNode && (
-          <div className="info-panel" key={active}>
-            <div className="info-label" style={{ color: activeNode.color }}>
-              {active === "shield" ? "Core Infrastructure" : "Product Layer"}
-            </div>
-            <div className="info-title">{activeNode.label.replace("\n", " ")}</div>
-            <div className="info-desc">{activeNode.desc}</div>
-            <div className="info-tags">
-              {activeNode.tags.map(t => (
-                <span
-                  key={t}
-                  className="info-tag"
-                  style={{ background: activeNode.tagBg, color: activeNode.tagColor }}
-                >{t}</span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className="shield-badge">
-          <div className="shield-dot" />
-          <span className="shield-text">ZK Shield Active · AES-256-GCM · Sovereign Infrastructure</span>
-        </div>
+  content.innerHTML = `
+    <div class="bio-card">
+      <div class="bio-lbl">Biological Age Estimate</div>
+      <div><span class="bio-num">${bio}</span><span class="bio-sfx">yrs</span></div>
+      <div class="bio-cmp">Chronological age 35 -- you are tracking
+        <strong style="color:${younger?'#00d4b8':'#e05252'}">${younger ? (chrono-bio)+' years younger' : (bio-chrono)+' years older'}</strong>
+        than your calendar age.
       </div>
-    </>
-  );
+    </div>
+    <div class="stat-row">
+      <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-val">${Math.round(pct*100)}%</div><div class="stat-lbl">Vitality</div></div>
+      <div class="stat-card"><div class="stat-icon">🔥</div><div class="stat-val">${total}</div><div class="stat-lbl">Points</div></div>
+      <div class="stat-card"><div class="stat-icon">🧬</div><div class="stat-val">${younger?'+':''}${chrono-bio}yr</div><div class="stat-lbl">Age Delta</div></div>
+    </div>
+    <div class="pillar-list">${PILLARS.map((p,i)=>`
+      <div class="pillar-row">
+        <div class="pillar-icon">${p.icon}</div>
+        <div class="pillar-info">
+          <div class="pillar-name">${p.name}</div>
+          <div class="bar-track"><div class="bar-fill" style="width:${(scores[i]/10)*100}%;background:${p.color}"></div></div>
+        </div>
+        <div class="pillar-score">${scores[i]}</div>
+      </div>`).join('')}
+    </div>
+    <button class="btn btn-outline" style="margin-top:4px" onclick="scores=null;currentQ=0;answers=[];showTab('assess')">Retake Assessment</button>
+    <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">AES-256-GCM Encrypted · Sovereign Infrastructure</span></div>
+    <div class="footer-txt">Sovereign Shield Technologies LLC</div>
+  `;
+
+  // Animate bars
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach((b,i) => {
+      b.style.width = ((scores[i]/10)*100)+'%';
+    });
+  }, 100);
 }
+
+// ── PROTOCOLS ─────────────────────────────────
+(function renderProtocols() {
+  const list = document.getElementById('proto-list');
+  PROTOCOLS.forEach(p => {
+    list.innerHTML += `
+      <div class="proto-card">
+        <div class="proto-icon">${p.icon}</div>
+        <div>
+          <div class="proto-title">${p.title}</div>
+          <div class="proto-desc">${p.desc}</div>
+          <span class="proto-tag" style="background:${p.tb};color:${p.tc}">${p.tag}</span>
+        </div>
+      </div>`;
+  });
+})();
+
+// ── AI COACH ──────────────────────────────────
+function addMsg(text, role) {
+  const area = document.getElementById('chat-area');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  area.appendChild(div);
+  area.scrollTop = area.scrollHeight;
+  return div;
+}
+
+// Initial AI message
+addMsg("Welcome. I am your LongevityIQ advisor -- powered by sovereign AI infrastructure. Ask me about biological aging, longevity protocols, cold therapy, peptides, sleep optimization, NAD+, or your overall wellness strategy.", "ai");
+
+function chatKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chat-input');
+  const send  = document.getElementById('chat-send');
+  const msg   = input.value.trim();
+  if (!msg || chatLoading) return;
+
+  input.value = '';
+  chatLoading = true;
+  send.disabled = true;
+  addMsg(msg, 'user');
+  chatHistory.push({ role: 'user', content: msg });
+
+  const thinking = addMsg('Analyzing...', 'thinking');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `You are LongevityIQ, a premium AI longevity and wellness advisor built by Sovereign Shield Technologies LLC. You specialize in biological age optimization and evidence-based wellness protocols including cold therapy, red light therapy, IV nutrient therapy, infrared sauna, peptide therapy, NAD+ infusion, sleep restoration, and anti-inflammatory nutrition. You are warm, precise, and knowledgeable. Keep responses to 2-4 sentences unless detail is requested. Never use em dashes. Always note that clinical interventions require professional medical consultation.`,
+        messages: chatHistory
+      })
+    });
+    const data  = await res.json();
+    const reply = data.content?.find(b => b.type === 'text')?.text || 'Unable to generate a response. Please try again.';
+    thinking.remove();
+    addMsg(reply, 'ai');
+    chatHistory.push({ role: 'assistant', content: reply });
+  } catch(e) {
+    thinking.remove();
+    addMsg('Connection error. Please check your network and try again.', 'ai');
+  } finally {
+    chatLoading = false;
+    send.disabled = false;
+  }
+}
+
+// Init assess
+renderQuestion();
+</script>
+</body>
+</html>
+
