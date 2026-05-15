@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export type FranchiseLocation = {
   id: string
@@ -71,6 +72,9 @@ function normalizeLocation(row: Record<string, unknown>): FranchiseLocation {
 }
 
 export async function requireOperator() {
+  if (!isSupabaseConfigured()) {
+    redirect('/franchise')
+  }
   const supabase = createClient()
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) {

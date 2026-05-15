@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export type ConsumerProfile = {
   id: string
@@ -19,6 +20,9 @@ export type ConsumerProfile = {
 }
 
 export async function requireConsumer() {
+  if (!isSupabaseConfigured()) {
+    redirect('/consumer')
+  }
   const supabase = createClient()
   const { data, error } = await supabase.auth.getUser()
   if (error || !data.user) {
