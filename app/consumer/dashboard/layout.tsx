@@ -3,10 +3,11 @@ import { requireConsumer } from '@/lib/consumer'
 
 const items = [
   { label: 'Bio Age', href: '/consumer/dashboard' },
-  { label: 'Protocols', href: '/consumer/dashboard/protocols' },
-  { label: 'Membership', href: '/consumer/dashboard/membership' },
-  { label: 'Insights', href: '/consumer/dashboard/insights' },
+  { label: 'Biomarkers', href: '/consumer/dashboard/biomarkers' },
   { label: 'Wearable', href: '/consumer/dashboard/wearable' },
+  { label: 'Protocols', href: '/consumer/dashboard/protocols' },
+  { label: 'Insights', href: '/consumer/dashboard/insights' },
+  { label: 'Membership', href: '/consumer/dashboard/membership' },
 ]
 
 export default async function ConsumerDashboardLayout({

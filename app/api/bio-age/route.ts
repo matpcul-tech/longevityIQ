@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { computeBioAge } from '@/lib/biomarkers'
+import { computeBioAge } from '@/lib/lifestyle-score'
 
 export async function POST(request: Request) {
   let body: { chronologicalAge?: number; scores?: Record<string, number> } = {}

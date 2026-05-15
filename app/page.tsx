@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import PortalCard from '@/components/PortalCard'
-import { BIO_AGE_QUESTIONS } from '@/lib/biomarkers'
+import { BIO_AGE_QUESTIONS } from '@/lib/lifestyle-score'
 
 export default function LandingPage() {
   const previewQuestion = BIO_AGE_QUESTIONS[0]
@@ -8,14 +8,16 @@ export default function LandingPage() {
     <main className="mx-auto max-w-7xl px-6 py-16">
       <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div>
-          <p className="heading-ui text-gold">Sovereign Shield Technologies</p>
+          <p className="heading-ui text-gold">Sovereign Healthcare</p>
           <h1 className="heading-display mt-6 text-5xl font-light leading-tight text-bone md:text-6xl">
-            Luxury big-city longevity healthcare for the sovereign and urban communities.
+            The longevity spa with a clinical record underneath.
           </h1>
           <p className="mt-6 max-w-xl text-base text-mist">
-            LongevityIQ is the operating layer for elite recovery, clinical
-            optimization, and AI-guided protocol design. Built in Ada, Oklahoma by an
-            enrolled Chickasaw citizen for the next generation of longevity operators.
+            Forty-six biomarker panel with Levine PhenoAge. Continuous wearable
+            stream from Apple Health, Oura, Whoop and Garmin. Eight Phase 1
+            protocols you can book today. Every reading anonymized and routed to
+            the Sovereign AI so the insight you receive tomorrow is sharper than
+            the one you received today.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/consumer" className="btn-gold">Enter Wellness</Link>
@@ -89,27 +91,29 @@ export default function LandingPage() {
 
       <section className="grid gap-8 md:grid-cols-3">
         <div className="card p-6">
-          <p className="heading-ui text-gold">Phase 1 Protocols</p>
-          <p className="heading-display mt-2 text-2xl text-bone">Eight modalities, ready today.</p>
+          <p className="heading-ui text-gold">Forty-Six Biomarkers</p>
+          <p className="heading-display mt-2 text-2xl text-bone">Levine PhenoAge from a single draw.</p>
           <p className="mt-3 text-sm text-mist">
-            Cryotherapy, photobiomodulation, NAD+ IV, hyperbaric oxygen, peptide consults
-            and VO2 baselining. Each protocol is priced, scheduled and billed inside the OS.
+            ApoB, hs-CRP, GlycA, HbA1c, omega-3 index, vitamin D, free testosterone
+            and 39 more. Longevity-optimization ranges, not just lab reference.
           </p>
         </div>
         <div className="card p-6">
-          <p className="heading-ui text-amber">Revenue Architecture</p>
-          <p className="heading-display mt-2 text-2xl text-bone">Operators keep the lift.</p>
+          <p className="heading-ui text-amber">Continuous Stream</p>
+          <p className="heading-display mt-2 text-2xl text-bone">Every wearable feeds one AI.</p>
           <p className="mt-3 text-sm text-mist">
-            Franchise operators retain 85 percent net of platform fees. Clinical partners
-            keep 30 to 40 percent on every clinical service ordered through the platform.
+            Apple Health, Oura, Whoop, Garmin, Polar, Fitbit, Eight Sleep and CGM
+            normalize into one daily shape. The Sovereign AI gets smarter with every
+            night of sleep, every recovery score, every HRV reading.
           </p>
         </div>
         <div className="card p-6">
           <p className="heading-ui text-teal">Sovereign Data</p>
-          <p className="heading-display mt-2 text-2xl text-bone">Zero-knowledge by default.</p>
+          <p className="heading-display mt-2 text-2xl text-bone">Hashed before it leaves.</p>
           <p className="mt-3 text-sm text-mist">
-            All client records are encrypted at rest with AES-256-GCM. We never sell data,
-            never share lists, and store the minimum required for clinical continuity.
+            Records encrypted at rest with AES-256-GCM. Training events anonymized
+            with a per-app salt before they ever cross our boundary. We sell nothing
+            and store only what clinical continuity requires.
           </p>
         </div>
       </section>

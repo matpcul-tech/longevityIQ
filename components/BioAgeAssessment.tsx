@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { BIO_AGE_QUESTIONS } from '@/lib/biomarkers'
+import { BIO_AGE_QUESTIONS } from '@/lib/lifestyle-score'
 
 type Props = {
   chronologicalAge: number | null
