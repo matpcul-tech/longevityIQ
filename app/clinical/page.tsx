@@ -1,7 +1,15 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import MagicLinkForm from '@/components/MagicLinkForm'
+import { createClient } from '@/lib/supabase/server'
 
-export default function ClinicalLogin() {
+export default async function ClinicalLogin() {
+  const supabase = createClient()
+  const { data } = await supabase.auth.getUser()
+  if (data.user) {
+    redirect('/clinical/dashboard')
+  }
+
   return (
     <main className="mx-auto grid max-w-6xl gap-12 px-6 py-16 lg:grid-cols-[1.05fr_0.95fr]">
       <section>
@@ -16,10 +24,12 @@ export default function ClinicalLogin() {
           Review orders, document protocols, monitor revenue share and maintain
           compliance across the states you practice in.
         </p>
-        <p className="mt-6 text-sm text-mist">
-          Clinical build ships after the franchise portal. Sign in to reserve your
-          partner record.
-        </p>
+        <ul className="mt-10 space-y-3 text-sm text-bone">
+          <li className="flex gap-3"><span className="text-teal">01.</span> Pending order queue with one-tap approve and decline.</li>
+          <li className="flex gap-3"><span className="text-teal">02.</span> Patient roster with masked IDs and protocol history.</li>
+          <li className="flex gap-3"><span className="text-teal">03.</span> Editable protocol catalog with clinical notes and pricing.</li>
+          <li className="flex gap-3"><span className="text-teal">04.</span> Revenue share ledger, compliance alerts on license and malpractice expiry.</li>
+        </ul>
       </section>
       <section className="self-center">
         <MagicLinkForm portal="clinical" accent="teal" />
