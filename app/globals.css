@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: #050608;
+  color: #E8E4D9;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.heading-display {
+  font-family: var(--font-display), serif;
+  letter-spacing: 0.01em;
+}
+
+.heading-ui {
+  font-family: var(--font-ui), sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.card {
+  background: #0C1018;
+  border: 1px solid #1C2530;
+  border-radius: 6px;
+}
+
+.btn-gold {
+  background: linear-gradient(180deg, #D8B85B 0%, #C8A84B 100%);
+  color: #050608;
+  border: 1px solid #B79538;
+  border-radius: 4px;
+  font-family: var(--font-ui), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  padding: 0.85rem 1.5rem;
+  transition: filter 0.15s ease;
+}
+
+.btn-gold:hover { filter: brightness(1.05); }
+.btn-gold:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-ghost {
+  background: transparent;
+  color: #C8A84B;
+  border: 1px solid #1C2530;
+  border-radius: 4px;
+  font-family: var(--font-ui), sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  padding: 0.85rem 1.5rem;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-ghost:hover { border-color: #C8A84B; }
+
+.input-field {
+  background: #050608;
+  border: 1px solid #1C2530;
+  border-radius: 4px;
+  padding: 0.85rem 1rem;
+  color: #E8E4D9;
+  width: 100%;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: #C8A84B;
+}
+
+.rule {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(28,37,48,0) 0%, #1C2530 50%, rgba(28,37,48,0) 100%);
+}
