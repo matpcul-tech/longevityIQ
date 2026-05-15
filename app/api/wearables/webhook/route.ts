@@ -96,6 +96,7 @@ export async function POST(request: Request) {
   // Emit one training event per day in the payload.
   try {
     const subjectHash = await hashUserId(userId)
+    if (!subjectHash) throw new Error('training disabled')
     for (const row of rows) {
       await emitTraining({
         type: 'wearable_daily_metrics',

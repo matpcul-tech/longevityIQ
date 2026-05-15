@@ -64,6 +64,7 @@ export async function POST() {
   // Emit a training event for the most recent day so the bus sees the stream.
   try {
     const subjectHash = await hashUserId(auth.user.id)
+    if (!subjectHash) throw new Error('training disabled')
     const latest = rows[0]
     await emitTraining({
       type: 'wearable_daily_metrics',

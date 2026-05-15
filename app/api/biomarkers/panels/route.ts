@@ -152,6 +152,7 @@ export async function POST(request: Request) {
   // Emit training event.
   try {
     const subjectHash = await hashUserId(auth.user.id)
+    if (!subjectHash) throw new Error('training disabled')
     await emitTraining({
       type: 'biomarker_panel_recorded',
       subjectHash,
