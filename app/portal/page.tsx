@@ -2,10 +2,18 @@ import Link from 'next/link'
 import PortalCard from '@/components/PortalCard'
 import { BIO_AGE_QUESTIONS } from '@/lib/lifestyle-score'
 
-export default function LandingPage() {
+export default function PortalLanding() {
   const previewQuestion = BIO_AGE_QUESTIONS[0]
   return (
     <main className="mx-auto max-w-7xl px-6 py-16">
+      <div className="flex items-center justify-between gap-4 pb-8">
+        <Link href="/" className="heading-ui text-mist hover:text-gold">
+          &larr; Back to LongevityIQ wellness
+        </Link>
+        <span className="heading-ui rounded-full border border-gold/40 px-3 py-1 text-gold">
+          Sovereign OS
+        </span>
+      </div>
       <section className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
         <div>
           <p className="heading-ui text-gold">Sovereign Healthcare</p>
