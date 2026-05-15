@@ -124,6 +124,7 @@ export async function POST() {
     )
     const promptDigest = await digestString(`${SYSTEM_SUMMARY}|${insightText}`)
     const subjectHash = await hashUserId(auth.user.id)
+    if (!subjectHash) throw new Error('training disabled')
     await emitTraining({
       type: 'ai_insight_generated',
       subjectHash,

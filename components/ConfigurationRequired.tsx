@@ -34,23 +34,46 @@ export default function ConfigurationRequired({
       </p>
 
       <section className="card mt-10 p-6">
-        <p className="heading-ui text-gold">Required environment variables</p>
+        <p className="heading-ui text-gold">Required to sign in</p>
         <ul className="mt-4 space-y-2 font-mono text-sm text-bone">
           <li>NEXT_PUBLIC_SUPABASE_URL</li>
           <li>NEXT_PUBLIC_SUPABASE_ANON_KEY</li>
           <li>SUPABASE_SERVICE_ROLE_KEY</li>
-          <li>ANTHROPIC_API_KEY</li>
-          <li>SOVEREIGN_APP_SALT</li>
-          <li>RESEND_API_KEY</li>
         </ul>
         {missing.length > 0 && (
           <p className="mt-4 text-xs text-amber">
             Currently missing: {missing.join(', ')}
           </p>
         )}
-        <p className="mt-4 text-xs text-mist">
-          Set these in Vercel under Project Settings &middot; Environment
-          Variables. Full list and setup steps in DEPLOY.md.
+      </section>
+
+      <section className="card mt-6 p-6">
+        <p className="heading-ui text-gold">Required for AI and email</p>
+        <ul className="mt-4 space-y-2 font-mono text-sm text-bone">
+          <li>ANTHROPIC_API_KEY <span className="text-mist">(daily insights)</span></li>
+          <li>RESEND_API_KEY <span className="text-mist">(magic-link delivery)</span></li>
+        </ul>
+        <p className="mt-3 text-xs text-mist">
+          Portals load without these, but insights stay on the static fallback
+          and magic links cannot reach inboxes.
+        </p>
+      </section>
+
+      <section className="card mt-6 p-6">
+        <p className="heading-ui text-gold">Optional: Sovereign training bus</p>
+        <ul className="mt-4 space-y-2 font-mono text-sm text-bone">
+          <li>SOVEREIGN_APP_SALT</li>
+          <li>SOVEREIGN_TRAINING_BUS_URL</li>
+          <li>SOVEREIGN_TRAINING_BUS_TOKEN</li>
+        </ul>
+        <p className="mt-3 text-xs text-mist">
+          Skip these until you are ready to start training the cross-app
+          Sovereign AI. The portals run fine without them; training events
+          silently no-op. Generate the salt with
+          <span className="font-mono"> openssl rand -hex 32</span>.
+        </p>
+        <p className="mt-2 text-xs text-mist">
+          Full list and setup steps in DEPLOY.md.
         </p>
       </section>
 

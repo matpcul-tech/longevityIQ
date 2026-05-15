@@ -13,14 +13,14 @@ import { createServiceClient } from '@/lib/supabase/server'
 
 const SOURCE_APP = 'longevityiq' as const
 
-function getSalt(): AnonymizerConfig {
+function getSalt(): AnonymizerConfig | null {
   const salt = process.env.SOVEREIGN_APP_SALT
-  if (!salt) {
-    throw new Error(
-      'SOVEREIGN_APP_SALT must be set. Generate with: openssl rand -hex 32',
-    )
-  }
+  if (!salt) return null
   return { appSalt: salt }
+}
+
+function isTrainingEnabled(): boolean {
+  return !!process.env.SOVEREIGN_APP_SALT
 }
 
 async function localSink({ envelope }: { envelope: TrainingEventEnvelope }) {
@@ -59,6 +59,11 @@ const emitter = createEmitter({
 })
 
 export async function emitTraining(partial: PartialEvent) {
+  if (!isTrainingEnabled()) {
+    // No SOVEREIGN_APP_SALT yet. Skip silently; the spa runs without the
+    // training bus until the operator chooses to enable it.
+    return null
+  }
   try {
     return await emitter.emit(partial)
   } catch (err) {
@@ -67,8 +72,10 @@ export async function emitTraining(partial: PartialEvent) {
   }
 }
 
-export async function hashUserId(userId: string) {
-  return hashSubject(userId, getSalt())
+export async function hashUserId(userId: string): Promise<string | null> {
+  const salt = getSalt()
+  if (!salt) return null
+  return hashSubject(userId, salt)
 }
 
 export { SOURCE_APP }
