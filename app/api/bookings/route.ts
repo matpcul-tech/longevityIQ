@@ -40,6 +40,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Profile not found.' }, { status: 404 })
   }
 
+  let locationId: string | null = null
+  if (payload.location) {
+    const { data: locRow } = await supabase
+      .from('franchise_locations')
+      .select('id')
+      .eq('location_name', payload.location)
+      .maybeSingle()
+    locationId = (locRow?.id as string | undefined) ?? null
+  }
+
   const { data, error } = await supabase
     .from('bookings')
     .insert({
@@ -47,6 +57,7 @@ export async function POST(request: Request) {
       service,
       scheduled_for: scheduled.toISOString(),
       location: payload.location ?? null,
+      location_id: locationId,
       notes: payload.notes ?? null,
     })
     .select('id')
