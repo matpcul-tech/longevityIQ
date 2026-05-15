@@ -42,12 +42,12 @@ export default function Nav({
 
   return (
     <header className="border-b border-edge bg-ink/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-5">
         <Link href={homeHref} className={`heading-ui ${accents[accent]}`}>
           LongevityIQ &middot; {portalLabel}
         </Link>
-        <div className="hidden items-center gap-4 text-xs text-mist md:flex">
-          {email && <span>{email}</span>}
+        <div className="flex items-center gap-4 text-xs text-mist">
+          {email && <span className="hidden sm:inline">{email}</span>}
           <button onClick={signOut} disabled={signingOut} className="btn-ghost">
             {signingOut ? 'Signing out' : 'Sign Out'}
           </button>

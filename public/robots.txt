@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+Disallow: /consumer/dashboard/
+Disallow: /franchise/dashboard/
+Disallow: /clinical/dashboard/
+
+Sitemap: https://longevityiq.vercel.app/sitemap.xml
