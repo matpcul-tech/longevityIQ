@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured } from '@/lib/supabase/config'
 
 export type ClinicalProtocol = {
   id: string
@@ -81,6 +82,9 @@ function maskedPatientId() {
 }
 
 export async function requireClinicalPartner() {
+  if (!isSupabaseConfigured()) {
+    redirect('/clinical')
+  }
   const supabase = createClient()
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) {

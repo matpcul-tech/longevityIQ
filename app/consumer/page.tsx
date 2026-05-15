@@ -1,9 +1,20 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import MagicLinkForm from '@/components/MagicLinkForm'
+import ConfigurationRequired from '@/components/ConfigurationRequired'
 import { createClient } from '@/lib/supabase/server'
+import { isSupabaseConfigured, missingSupabaseKeys } from '@/lib/supabase/config'
 
 export default async function ConsumerLogin() {
+  if (!isSupabaseConfigured()) {
+    return (
+      <ConfigurationRequired
+        portal="Consumer"
+        accent="gold"
+        missing={missingSupabaseKeys()}
+      />
+    )
+  }
   const supabase = createClient()
   const { data } = await supabase.auth.getUser()
   if (data.user) {
