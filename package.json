@@ -4,8 +4,9 @@
   "private": true,
   "workspaces": ["packages/*"],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "embed-spa": "node scripts/embed-spa.mjs",
+    "dev": "npm run embed-spa && next dev",
+    "build": "npm run embed-spa && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit"
