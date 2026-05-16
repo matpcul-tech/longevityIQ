@@ -21,8 +21,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unknown portal.' }, { status: 400 })
   }
 
-  const siteUrl =
+  // Normalize NEXT_PUBLIC_SITE_URL to just an origin even if it was
+  // misconfigured with a path appended (e.g. /auth/callback). Strips trailing
+  // slashes and any path component so the redirect URL is built correctly.
+  const rawSiteUrl =
     process.env.NEXT_PUBLIC_SITE_URL ?? new URL(request.url).origin
+  let siteUrl: string
+  try {
+    const parsed = new URL(rawSiteUrl)
+    siteUrl = `${parsed.protocol}//${parsed.host}`
+  } catch {
+    siteUrl = new URL(request.url).origin
+  }
   const redirectTo = `${siteUrl}/auth/callback?next=/${portal}/dashboard`
 
   const supabase = createClient()
