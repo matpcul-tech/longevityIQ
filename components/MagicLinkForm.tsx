@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 type Props = {
   portal: 'consumer' | 'franchise' | 'clinical'
@@ -27,15 +28,32 @@ export default function MagicLinkForm({ portal, accent = 'gold' }: Props) {
     setStatus('sending')
     setError(null)
     try {
-      const res = await fetch('/api/magic-link', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email, portal }),
+      // Calling from the browser client (not /api/magic-link) so that the
+      // PKCE code verifier is stored in cookies on THIS browser. The same
+      // browser then opens the magic link, the verifier is still in its
+      // cookie jar, and exchangeCodeForSession succeeds. If we called the
+      // server route instead, the verifier would be saved on the server
+      // response cookie which does not always survive a fetch round-trip
+      // and a subsequent navigation.
+      const supabase = createClient()
+      const origin =
+        process.env.NEXT_PUBLIC_SITE_URL ??
+        (typeof window !== 'undefined' ? window.location.origin : '')
+      const cleanOrigin = (() => {
+        try {
+          const parsed = new URL(origin)
+          return `${parsed.protocol}//${parsed.host}`
+        } catch {
+          return origin
+        }
+      })()
+      const redirectTo = `${cleanOrigin}/auth/callback?next=/${portal}/dashboard`
+
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: redirectTo, shouldCreateUser: true },
       })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error ?? 'Could not send the magic link.')
-      }
+      if (error) throw new Error(error.message)
       setStatus('sent')
     } catch (err) {
       setStatus('error')
@@ -51,8 +69,9 @@ export default function MagicLinkForm({ portal, accent = 'gold' }: Props) {
           We sent a sign-in link to {email}.
         </p>
         <p className="mt-3 text-mist">
-          The link expires in fifteen minutes. Open it on this device to continue into
-          the portal.
+          The link expires in fifteen minutes. Open it on this device, in this
+          browser. Opening from a different browser, app, or device will break
+          the sign-in flow.
         </p>
       </div>
     )
