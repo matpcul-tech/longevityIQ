@@ -1,30 +1,17 @@
-// Serves the wellness SPA (public/index.html) at the root URL.
-// Using a route handler at app/route.ts instead of a Next.js rewrite because
-// rewriting / to a public file can interact unpredictably with the app/
-// layout tree. A raw Response bypasses the layout entirely and returns the
-// static HTML directly.
+// Serves the wellness SPA at the root URL.
+//
+// The HTML is embedded as a base64 string at build time by
+// scripts/embed-spa.mjs so it ships inside the route handler bundle.
+// This avoids reading from the filesystem at request time, which is
+// unreliable on Vercel serverless functions where process.cwd() does
+// not always point at the project root.
 
-import fs from 'node:fs'
-import path from 'node:path'
+import { WELLNESS_SPA_HTML } from '@/lib/wellness-spa-html'
 
-let cachedHtml: string | null = null
-
-function loadHtml() {
-  if (cachedHtml !== null) return cachedHtml
-  try {
-    cachedHtml = fs.readFileSync(
-      path.join(process.cwd(), 'public', 'index.html'),
-      'utf-8',
-    )
-  } catch (err) {
-    console.error('[wellness-spa] could not load public/index.html', err)
-    cachedHtml = MINIMAL_FALLBACK
-  }
-  return cachedHtml
-}
+export const dynamic = 'force-static'
 
 export async function GET() {
-  return new Response(loadHtml(), {
+  return new Response(WELLNESS_SPA_HTML, {
     status: 200,
     headers: {
       'content-type': 'text/html; charset=utf-8',
@@ -32,20 +19,3 @@ export async function GET() {
     },
   })
 }
-
-const MINIMAL_FALLBACK = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>LongevityIQ</title>
-    <style>
-      body { background: #050608; color: #E8E4D9; font-family: system-ui, sans-serif; padding: 4rem 2rem; text-align: center; }
-      a { color: #C8A84B; }
-    </style>
-  </head>
-  <body>
-    <h1>LongevityIQ</h1>
-    <p>The wellness SPA failed to load. <a href="/portal">Open the Sovereign OS</a>.</p>
-  </body>
-</html>`
