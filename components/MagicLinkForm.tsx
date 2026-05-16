@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 
 type Props = {
   portal: 'consumer' | 'franchise' | 'clinical'
@@ -14,9 +15,12 @@ const accents = {
 }
 
 export default function MagicLinkForm({ portal, accent = 'gold' }: Props) {
+  const searchParams = useSearchParams()
+  const urlError = searchParams.get('error')
+
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(urlError)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
