@@ -129,6 +129,7 @@ body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min
 .page{display:none}
 .page.active{display:block}
 </style>
+<script src="https://unpkg.com/@supabase/[email protected]/dist/umd/supabase.min.js"></script>
 </head>
 <body>
 
@@ -186,9 +187,19 @@ body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min
     <div><div class="card-title">Sovereign OS &middot; Clinical Portal</div><div class="card-desc">46-marker panel with PhenoAge, wearables, three-portal infrastructure</div></div>
     <div class="card-arrow">›</div>
   </a>
+  <div class="card" id="signin-card" onclick="openSignIn()" style="display:none">
+    <div class="card-icon">🔐</div>
+    <div><div class="card-title">Sign In</div><div class="card-desc">Save your record. Resume from any device.</div></div>
+    <div class="card-arrow">›</div>
+  </div>
+  <div class="card" id="signedin-card" style="display:none">
+    <div class="card-icon">✓</div>
+    <div><div class="card-title">Signed In</div><div class="card-desc" id="signedin-email"></div></div>
+    <div class="card-arrow" onclick="signOut(event)" style="cursor:pointer">×</div>
+  </div>
 
   <div class="divider"></div>
-  <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">AES-256-GCM · Append-Only Audit Log · Zero-Knowledge</span></div>
+  <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">Sovereign-managed Encryption at Rest · Append-Only Audit Log</span></div>
   <div class="footer-txt">Sovereign Shield Technologies LLC</div>
 </div>
 
@@ -234,6 +245,22 @@ body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min
 </div>
 
 <script>
+// ── SOVEREIGN BACKEND ─────────────────────────
+// Substituted at build time by scripts/embed-spa.mjs from the matching
+// NEXT_PUBLIC env vars. Empty string means Supabase is not configured.
+const SUPABASE_URL = '{{NEXT_PUBLIC_SUPABASE_URL}}';
+const SUPABASE_ANON_KEY = '{{NEXT_PUBLIC_SUPABASE_ANON_KEY}}';
+const STORAGE_KEY = 'liq.spa.profile.v1';
+
+let sb = null;
+if (SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase) {
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+  });
+}
+
+let currentUser = null;
+
 // ── DATA ──────────────────────────────────────
 const QUESTIONS = [
   { q:"How would you describe your energy throughout the day?",
@@ -247,6 +274,8 @@ const QUESTIONS = [
   { q:"How would you describe your typical diet?",
     opts:["Whole foods, anti-inflammatory","Mostly healthy, some indulgences","Mixed, frequent processed foods","Mostly processed or fast food"], scores:[10,7,4,1] },
 ];
+
+const PILLAR_KEYS = ['energy','sleep','movement','stress','nutrition'];
 
 const PILLARS = [
   { name:"Energy",    icon:"⚡", color:"#d4a843" },
@@ -269,8 +298,144 @@ const PROTOCOLS = [
 
 // ── STATE ─────────────────────────────────────
 let currentQ = 0, selectedOpt = null, answers = [], scores = null;
+let chronoAge = null;
+let bioAge = null;
+let phaseAge = false; // true when on the chronological age step
 let chatHistory = [];
 let chatLoading = false;
+
+// ── PERSISTENCE ───────────────────────────────
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const obj = JSON.parse(raw);
+    if (typeof obj.chronologicalAge === 'number') chronoAge = obj.chronologicalAge;
+    if (Array.isArray(obj.scores)) scores = obj.scores;
+    if (typeof obj.bioAge === 'number') bioAge = obj.bioAge;
+  } catch {}
+}
+function saveLocal() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      chronologicalAge: chronoAge,
+      scores,
+      bioAge,
+    }));
+  } catch {}
+}
+
+async function syncFromSupabase() {
+  if (!sb || !currentUser) return;
+  try {
+    const { data } = await sb
+      .from('consumer_profiles')
+      .select('chronological_age, assessment_scores, bio_age')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if (!data) return;
+    if (typeof data.chronological_age === 'number') chronoAge = data.chronological_age;
+    if (typeof data.bio_age === 'number') bioAge = data.bio_age;
+    if (data.assessment_scores && typeof data.assessment_scores === 'object') {
+      const next = PILLAR_KEYS.map(k => {
+        const v = data.assessment_scores[k];
+        return typeof v === 'number' ? v : null;
+      });
+      if (next.every(v => v !== null)) scores = next;
+    }
+    saveLocal();
+  } catch (err) {
+    console.error('[liq] sync failed', err);
+  }
+}
+
+function computeBio() {
+  if (!scores || chronoAge === null) return null;
+  const total = scores.reduce((a,b)=>a+b,0);
+  const pct = total / (QUESTIONS.length * 10);
+  return Math.max(18, Math.round(chronoAge - (pct - 0.5) * 14));
+}
+
+async function persistAssessment() {
+  bioAge = computeBio();
+  saveLocal();
+  if (!sb || !currentUser || !scores || chronoAge === null) return;
+  const assessment_scores = Object.fromEntries(PILLAR_KEYS.map((k,i) => [k, scores[i]]));
+  try {
+    await sb
+      .from('consumer_profiles')
+      .upsert({
+        user_id: currentUser.id,
+        email: currentUser.email || '',
+        chronological_age: chronoAge,
+        assessment_scores,
+        bio_age: bioAge,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+  } catch (err) {
+    console.error('[liq] persist failed', err);
+  }
+}
+
+// ── AUTH ──────────────────────────────────────
+async function loadUser() {
+  if (!sb) return;
+  try {
+    const { data } = await sb.auth.getUser();
+    currentUser = data?.user || null;
+    renderAuthCards();
+    if (currentUser) await syncFromSupabase();
+  } catch (err) {
+    console.error('[liq] auth load failed', err);
+  }
+}
+
+function renderAuthCards() {
+  const inCard = document.getElementById('signin-card');
+  const outCard = document.getElementById('signedin-card');
+  if (!sb) {
+    inCard.style.display = 'none';
+    outCard.style.display = 'none';
+    return;
+  }
+  if (currentUser) {
+    inCard.style.display = 'none';
+    outCard.style.display = 'flex';
+    document.getElementById('signedin-email').textContent = currentUser.email || 'Signed in';
+  } else {
+    inCard.style.display = 'flex';
+    outCard.style.display = 'none';
+  }
+}
+
+function openSignIn() {
+  if (!sb) {
+    alert('Sign-in is offline. Supabase has not been configured for this deployment.');
+    return;
+  }
+  const email = prompt('Enter your email to receive a magic link');
+  if (!email) return;
+  sb.auth.signInWithOtp({
+    email: email.trim().toLowerCase(),
+    options: {
+      emailRedirectTo: window.location.origin + '/auth/callback?next=/',
+      shouldCreateUser: true,
+    },
+  }).then(({ error }) => {
+    if (error) alert('Could not send magic link: ' + error.message);
+    else alert('Magic link sent. Open it in this browser to sign in.');
+  }).catch(err => {
+    alert('Sign-in error: ' + (err.message || 'unknown'));
+  });
+}
+
+async function signOut(event) {
+  if (event) { event.preventDefault(); event.stopPropagation(); }
+  if (!sb) return;
+  await sb.auth.signOut();
+  currentUser = null;
+  renderAuthCards();
+}
 
 // ── NAV ───────────────────────────────────────
 function showTab(id) {
@@ -286,6 +451,32 @@ function showTab(id) {
 
 // ── ASSESS ────────────────────────────────────
 function renderQuestion() {
+  // Step zero: collect chronological age once.
+  if (chronoAge === null) {
+    phaseAge = true;
+    document.getElementById('assess-q').textContent = 'What is your chronological age?';
+    document.getElementById('assess-bar').style.width = '0%';
+    document.getElementById('assess-ctr').textContent = 'Age · then 5 questions';
+    document.getElementById('assess-next').textContent = 'Continue';
+    document.getElementById('assess-next').disabled = true;
+    selectedOpt = null;
+    const opts = document.getElementById('assess-opts');
+    opts.innerHTML = '<input id="chrono-input" type="number" min="18" max="100" inputmode="numeric" placeholder="Enter your age" style="padding:11px 14px;border-radius:10px;border:1px solid var(--bdr);background:var(--bgd);font-size:14px;color:var(--text);font-family:Outfit,sans-serif;width:100%;outline:none">';
+    const input = document.getElementById('chrono-input');
+    input.addEventListener('input', () => {
+      const v = Number(input.value);
+      if (Number.isFinite(v) && v >= 18 && v <= 100) {
+        selectedOpt = v;
+        document.getElementById('assess-next').disabled = false;
+      } else {
+        selectedOpt = null;
+        document.getElementById('assess-next').disabled = true;
+      }
+    });
+    setTimeout(() => input.focus(), 30);
+    return;
+  }
+  phaseAge = false;
   const q = QUESTIONS[currentQ];
   document.getElementById('assess-q').textContent = q.q;
   document.getElementById('assess-bar').style.width = ((currentQ / QUESTIONS.length)*100)+'%';
@@ -312,12 +503,20 @@ function renderQuestion() {
 
 function nextQuestion() {
   if (selectedOpt === null) return;
+  if (phaseAge) {
+    chronoAge = selectedOpt;
+    saveLocal();
+    selectedOpt = null;
+    renderQuestion();
+    return;
+  }
   answers.push(QUESTIONS[currentQ].scores[selectedOpt]);
   if (currentQ + 1 >= QUESTIONS.length) {
     scores = [...answers];
     answers = [];
     currentQ = 0;
     selectedOpt = null;
+    persistAssessment();
     showTab('dashboard');
   } else {
     currentQ++;
@@ -329,15 +528,16 @@ function nextQuestion() {
 function renderDashboard() {
   const sub = document.getElementById('dash-sub');
   const content = document.getElementById('dash-content');
-  if (!scores) {
+  if (!scores || chronoAge === null) {
     sub.textContent = 'Complete your assessment to unlock your dashboard.';
     content.innerHTML = '<button class="btn" onclick="showTab(\'assess\')">Start Assessment</button>';
     return;
   }
+  bioAge = bioAge ?? computeBio();
   const total = scores.reduce((a,b)=>a+b,0);
-  const pct   = total / (QUESTIONS.length * 10);
-  const chrono = 35;
-  const bio    = Math.round(chrono - (pct - 0.5) * 14);
+  const pct = total / (QUESTIONS.length * 10);
+  const chrono = chronoAge;
+  const bio = bioAge;
   const younger = bio < chrono;
   sub.textContent = 'Your biological age estimate and pillar breakdown.';
 
@@ -345,7 +545,7 @@ function renderDashboard() {
     <div class="bio-card">
       <div class="bio-lbl">Biological Age Estimate</div>
       <div><span class="bio-num">${bio}</span><span class="bio-sfx">yrs</span></div>
-      <div class="bio-cmp">Chronological age 35 -- you are tracking
+      <div class="bio-cmp">Chronological age ${chrono} -- you are tracking
         <strong style="color:${younger?'#00d4b8':'#e05252'}">${younger ? (chrono-bio)+' years younger' : (bio-chrono)+' years older'}</strong>
         than your calendar age.
       </div>
@@ -365,8 +565,8 @@ function renderDashboard() {
         <div class="pillar-score">${scores[i]}</div>
       </div>`).join('')}
     </div>
-    <button class="btn btn-outline" style="margin-top:4px" onclick="scores=null;currentQ=0;answers=[];showTab('assess')">Retake Assessment</button>
-    <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">AES-256-GCM Encrypted · Sovereign Infrastructure</span></div>
+    <button class="btn btn-outline" style="margin-top:4px" onclick="resetAssessment()">Retake Assessment</button>
+    <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">Sovereign-managed Encryption at Rest</span></div>
     <div class="footer-txt">Sovereign Shield Technologies LLC</div>
   `;
 
@@ -376,6 +576,16 @@ function renderDashboard() {
       b.style.width = ((scores[i]/10)*100)+'%';
     });
   }, 100);
+}
+
+function resetAssessment() {
+  scores = null;
+  bioAge = null;
+  answers = [];
+  currentQ = 0;
+  selectedOpt = null;
+  saveLocal();
+  showTab('assess');
 }
 
 // ── PROTOCOLS ─────────────────────────────────
@@ -406,7 +616,7 @@ function addMsg(text, role) {
 }
 
 // Initial AI message
-addMsg("Welcome. I am your LongevityIQ advisor -- powered by sovereign AI infrastructure. Ask me about biological aging, longevity protocols, cold therapy, peptides, sleep optimization, NAD+, or your overall wellness strategy.", "ai");
+addMsg("Welcome. I am your LongevityIQ advisor, powered by sovereign AI infrastructure. Ask me about biological aging, longevity protocols, cold therapy, peptides, sleep optimization, NAD+, or your overall wellness strategy.", "ai");
 
 function chatKey(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
@@ -427,18 +637,17 @@ async function sendChat() {
   const thinking = addMsg('Analyzing...', 'thinking');
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/coach', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `You are LongevityIQ, a premium AI longevity and wellness advisor built by Sovereign Shield Technologies LLC. You specialize in biological age optimization and evidence-based wellness protocols including cold therapy, red light therapy, IV nutrient therapy, infrared sauna, peptide therapy, NAD+ infusion, sleep restoration, and anti-inflammatory nutrition. You are warm, precise, and knowledgeable. Keep responses to 2-4 sentences unless detail is requested. Never use em dashes. Always note that clinical interventions require professional medical consultation.`,
-        messages: chatHistory
-      })
+      body: JSON.stringify({ messages: chatHistory })
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || ('Request failed: ' + res.status));
+    }
     const data  = await res.json();
-    const reply = data.content?.find(b => b.type === 'text')?.text || 'Unable to generate a response. Please try again.';
+    const reply = data.reply || 'Unable to generate a response. Please try again.';
     thinking.remove();
     addMsg(reply, 'ai');
     chatHistory.push({ role: 'assistant', content: reply });
@@ -451,9 +660,11 @@ async function sendChat() {
   }
 }
 
-// Init assess
+// ── INIT ──────────────────────────────────────
+loadLocal();
+loadUser();
+renderAuthCards();
 renderQuestion();
 </script>
 </body>
 </html>
-
