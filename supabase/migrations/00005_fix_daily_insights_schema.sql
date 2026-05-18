@@ -1,6 +1,3 @@
--- Repair drift on public.daily_insights when an older table shape exists.
--- Safe to re-run: every step is guarded.
-
 create extension if not exists "pgcrypto";
 
 create table if not exists public.daily_insights (
@@ -19,8 +16,6 @@ alter table public.daily_insights
 alter table public.daily_insights
   add column if not exists generated_at timestamptz not null default now();
 
--- Backfill consumer_id from the legacy user_id column by joining
--- consumer_profiles. Only runs if user_id exists on the table.
 do $$
 begin
   if exists (
@@ -37,8 +32,6 @@ begin
   end if;
 end $$;
 
--- Drop orphaned rows whose user_id has no matching consumer_profile, so the
--- NOT NULL + FK constraints below can apply cleanly.
 delete from public.daily_insights where consumer_id is null;
 
 do $$
@@ -106,5 +99,4 @@ begin
   end if;
 end $$;
 
--- Force PostgREST to reload its schema cache so the new columns are visible.
 notify pgrst, 'reload schema';
