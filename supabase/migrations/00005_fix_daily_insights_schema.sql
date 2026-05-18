@@ -11,13 +11,50 @@ create table if not exists public.daily_insights (
 );
 
 alter table public.daily_insights
-  add column if not exists consumer_id uuid references public.consumer_profiles(id) on delete cascade;
+  add column if not exists consumer_id uuid;
 
 alter table public.daily_insights
   add column if not exists insight_text text;
 
 alter table public.daily_insights
   add column if not exists generated_at timestamptz not null default now();
+
+-- Backfill consumer_id from the legacy user_id column by joining
+-- consumer_profiles. Only runs if user_id exists on the table.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'daily_insights'
+      and column_name = 'user_id'
+  ) then
+    update public.daily_insights di
+       set consumer_id = cp.id
+      from public.consumer_profiles cp
+     where di.consumer_id is null
+       and di.user_id = cp.user_id;
+  end if;
+end $$;
+
+-- Drop orphaned rows whose user_id has no matching consumer_profile, so the
+-- NOT NULL + FK constraints below can apply cleanly.
+delete from public.daily_insights where consumer_id is null;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'daily_insights'
+      and column_name = 'consumer_id'
+      and is_nullable = 'NO'
+  ) then
+    alter table public.daily_insights
+      alter column consumer_id set not null;
+  end if;
+end $$;
 
 do $$
 begin
