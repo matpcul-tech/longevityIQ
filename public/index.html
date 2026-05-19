@@ -150,61 +150,14 @@ body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;min
 
 <!-- NAV -->
 <div class="nav">
-  <button class="nav-btn active" onclick="showTab('home')">Home</button>
-  <button class="nav-btn" onclick="showTab('assess')">Assess</button>
+  <button class="nav-btn active" onclick="showTab('assess')">Assess</button>
   <button class="nav-btn" onclick="showTab('dashboard')">Dashboard</button>
   <button class="nav-btn" onclick="showTab('protocols')">Protocols</button>
   <button class="nav-btn" onclick="showTab('coach')">AI Coach</button>
 </div>
 
-<!-- HOME -->
-<div id="tab-home" class="page active content">
-  <p class="sec-title">Welcome to LongevityIQ</p>
-  <p class="sec-sub">Your sovereign longevity operating system. Biological age optimization powered by evidence-based science and sovereign AI infrastructure.</p>
-
-  <div class="card" onclick="showTab('assess')">
-    <div class="card-icon">🧬</div>
-    <div><div class="card-title">Bio Age Assessment</div><div class="card-desc">Estimate your biological age in 5 questions</div></div>
-    <div class="card-arrow">›</div>
-  </div>
-  <div class="card" onclick="showTab('dashboard')">
-    <div class="card-icon">📊</div>
-    <div><div class="card-title">Longevity Dashboard</div><div class="card-desc">Pillar scores, age delta, vitality metrics</div></div>
-    <div class="card-arrow">›</div>
-  </div>
-  <div class="card" onclick="showTab('protocols')">
-    <div class="card-icon">💊</div>
-    <div><div class="card-title">Protocol Library</div><div class="card-desc">Cold plunge, NAD+, red light, IV therapy + more</div></div>
-    <div class="card-arrow">›</div>
-  </div>
-  <div class="card" onclick="showTab('coach')">
-    <div class="card-icon">🤖</div>
-    <div><div class="card-title">AI Longevity Coach</div><div class="card-desc">Sovereign AI-powered personalized guidance</div></div>
-    <div class="card-arrow">›</div>
-  </div>
-  <a class="card" href="/portal" style="text-decoration:none;color:inherit">
-    <div class="card-icon">🏛️</div>
-    <div><div class="card-title">Sovereign OS &middot; Clinical Portal</div><div class="card-desc">46-marker panel with PhenoAge, wearables, three-portal infrastructure</div></div>
-    <div class="card-arrow">›</div>
-  </a>
-  <div class="card" id="signin-card" onclick="openSignIn()" style="display:none">
-    <div class="card-icon">🔐</div>
-    <div><div class="card-title">Sign In</div><div class="card-desc">Save your record. Resume from any device.</div></div>
-    <div class="card-arrow">›</div>
-  </div>
-  <div class="card" id="signedin-card" style="display:none">
-    <div class="card-icon">✓</div>
-    <div><div class="card-title">Signed In</div><div class="card-desc" id="signedin-email"></div></div>
-    <div class="card-arrow" onclick="signOut(event)" style="cursor:pointer">×</div>
-  </div>
-
-  <div class="divider"></div>
-  <div class="enc-row"><div class="enc-dot"></div><span class="enc-text">Sovereign-managed Encryption at Rest · Append-Only Audit Log</span></div>
-  <div class="footer-txt">Sovereign Shield Technologies LLC</div>
-</div>
-
 <!-- ASSESS -->
-<div id="tab-assess" class="page content">
+<div id="tab-assess" class="page active content">
   <p class="sec-title">Bio Age Assessment</p>
   <p class="sec-sub">5 questions to calculate your biological age and build your protocol stack.</p>
   <div class="assess-prog"><div class="assess-prog-fill" id="assess-bar" style="width:0%"></div></div>
@@ -393,6 +346,7 @@ async function loadUser() {
 function renderAuthCards() {
   const inCard = document.getElementById('signin-card');
   const outCard = document.getElementById('signedin-card');
+  if (!inCard || !outCard) return;
   if (!sb) {
     inCard.style.display = 'none';
     outCard.style.display = 'none';
@@ -442,7 +396,7 @@ function showTab(id) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+id).classList.add('active');
-  const tabs = ['home','assess','dashboard','protocols','coach'];
+  const tabs = ['assess','dashboard','protocols','coach'];
   const idx = tabs.indexOf(id);
   document.querySelectorAll('.nav-btn')[idx]?.classList.add('active');
   if (id === 'dashboard') renderDashboard();
