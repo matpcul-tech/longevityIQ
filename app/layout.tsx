@@ -27,7 +27,7 @@ const body = Jost({
 export const metadata: Metadata = {
   title: 'LongevityIQ',
   description:
-    'Luxury big-city longevity healthcare for the sovereign and urban communities.',
+    'Luxury big-city longevity healthcare for the sovereign and rural communities.',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -6,7 +6,7 @@ export default function Footer() {
         <div className="space-y-1">
           <p className="heading-ui text-gold">LongevityIQ</p>
           <p className="font-body">
-            Luxury big-city longevity healthcare for the sovereign and urban communities.
+            Luxury big-city longevity healthcare for the sovereign and rural communities.
           </p>
         </div>
         <div className="space-y-1 md:text-right">
