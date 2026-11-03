@@ -12,7 +12,7 @@ export default function Footer() {
         <div className="space-y-1 md:text-right">
           <p>
             Powered by Sovereign Shield Technologies LLC &middot; AES-256-GCM &middot;
-            Zero-Knowledge &middot; Your data is never sold
+            Encrypted at rest with AES-256-GCM &middot; Your data is never sold
           </p>
           <p>
             &copy; {year} Sovereign Shield Technologies LLC &middot; Ada, Oklahoma &middot;
